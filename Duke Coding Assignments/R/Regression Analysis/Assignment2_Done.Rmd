@@ -1,0 +1,324 @@
+---
+title: "Assignment2"
+author: "Samuel Eure"
+date: "2/5/2018"
+output: pdf_document
+---
+
+---
+title: "Stat 210: Regression Analysis. Assigment 2."
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+This assignment involves review of confidence intervals and hypothesis tests for means. Use this R Markdown template to provide the answers of all problems. Ideally, all work should be reported using this template. The assignment must be printed and turned in at the beginning of class on the due date. Useful R commands are in the R scripts on Sakai. Additionally, the website https://www.statmethods.net/r-tutorial/index.html includes useful commands for analysis and graphics.
+
+**Due Date**: Friday, February 9.
+
+## Problem 1
+
+This problem is based on exercise 25, Chapter 5, The Statistical Sleuth third edition, but uses a different dataset.
+
+*Context of the problem.* The data file `payingjobs.cvs` contains annual incomes in 2005 of a random sample of 2,584 Americans who were selected for the National Longitudinal Survey of Youth in 1979 and who had paying jobs in 2005. The data set also includes a code for the number of years of education that each individual had completed by 2006: <12, 12, 13-15, 16, and >16. Assume that you want to find evidence that at least one of the five population means (corresponding to the different years of education) is different from the others using one-way Anova.
+
+a. Provide exploratory data analyses of the data. For all figures, provide proper axis labels. 
+
+Let me look at the data first:
+```{r}
+
+library(RColorBrewer)
+
+pj = read.csv("payingjobs.csv", header = T)
+
+head(pj)
+str(pj)
+summary(pj)
+```
+The data appears to have the correct structures.  Let me attach it. Then I'll
+make a boxplot of income by education level:
+```{r}
+attach(pj)
+
+require(RColorBrewer)
+
+boxplot(pj$Income2005 ~ pj$Educ, horizontal = TRUE, col = brewer.pal(5,"Set3"), 
+        xlab = "Income in Dollars", ylab = "Years of Education",
+        main = "Boxplot of Income Distribution by Education Level")
+```
+
+It looks like <12 years of education may have a lower mean salary.  I notice
+here that the variences of each of the groups looks quite equal, and that the
+distributions look relatively normal, however, all of the groups have numerous
+outliers to the left, and thus, all of the distributions are left-skewed. 
+
+
+
+Let's look at some histograms:
+```{r}
+levels = c("<12", "12", '13-15','16', '>16')
+attach(mtcars)
+
+par(mfrow=c(2,3))
+for (i in levels){
+  nameHere = cbind("Histogram of Income for", i, "Education")
+
+  hist(pj$Income2005[pj$Educ ==i], breaks = 20, col = "lightblue",
+       xlab = "Income in Dollars", main = nameHere)
+ 
+}
+```
+
+It looks like each of these Histograms have a relatively normal distribution with outliers to the far left, however the outliers are more like a long tail of lower values.
+
+Let me look at some statistics, in particular, the mean and sd of each group:
+```{r}
+aggregate(pj$Income2005, by = list(pj$Educ), FUN = mean) #Mean
+aggregate(pj$Income2005, by = list(pj$Educ), FUN = var)  #Standard Deviation
+```
+Well, it looks like the variences are quite similar for each of the groups.
+None of the groups have a varience which is double or more that of another group.  
+But, just to be safe, why don't I use a Levene Test to varify the "closeness" of the variences:
+```{r}
+require(lawstat)
+levene.test(pj$Income2005, pj$Educ)
+```
+Excellent, it looks like my p-value of 0.2377 supports the null
+hypothesis that the variences of the different groups based on
+education are the same (or at least similar). While still looking at the variences,
+let me look at one more thing -- the sample size per group:
+```{r}
+summary(pj$Educ)
+```
+Well, the sample sizes differ greatly between groups.  I'll take this into
+consideration later in my analysis of the data.  
+
+Perhaps now I shall assess the normality of the distributions.  
+I can this by using a qqnorm plot:
+
+```{r}
+levels = c("<12", "12", '13-15','16', '>16')
+
+attach(mtcars)
+par(mfrow=c(2,3))
+for (i in levels){
+  I = c(i,"education")
+  eduNAME = c("QQNorm for ", I)
+  qqnorm(pj$Income2005[pj$Educ==i], main = eduNAME,)
+  qqline(pj$Income2005[pj$Educ==i])
+}
+```
+
+Well, these qqnorm plots don't look very nice.  It is it not entirely clear whether or not this data follows a normal distribution, however these plots suggest otherwise.
+This shouldn't be too much of a problem for the ANOVA test since ANOVA is 
+robust to slight violations in normailty (as long as the variences are the same).
+
+
+b. Provide an assessment of the one-way Anova assumptions using the dataset `payingjobs.cvs`.  
+
+ANSWER:
+  The ANOVA test makes the assumptions that the data:
+  (1) Follows a normal distribution, and that the residual of
+    each data point follows a normal distribution with mean 0.
+  (2) The different groups being assessed share a common sd.  
+  
+  The results from my Levene test support the assumption that
+    the distribution of the income between different groups 
+    based on education share a common standard deviation.  However,
+    the results of my qqnorm plots and box plots show that there
+    are some "outliers" in each of the data sets.
+    My box plots and histograms also show that the data is, for the
+    most part, normally distributed.  Regardless to this, the ANOVA
+    test is robust to violations of normalitiy given large samples sizes,
+    which is the case here.  Additionally, the "outliers" are not outliers
+    in the traditional sense (i.e. they are not entirley different than the other data points) and thus, these outliers may have a trivial effect on the
+    results of an ANOVA test. The ANOVA test works better while using
+    groups of simliar sample sizes however. In sum, not all the assumptions
+    of the ANOVA test are perfectly met, but I believe the test should be
+    robust against the slight violation in normality and the given
+    "outliers" due to the nature of the distribution.  
+    
+  Lastly, there isn't much way to assess if the data was collected in a random and independent manner.  This is more of an untested assumption.
+     
+ 
+c. How strong is the evidence that at least one of the five population distributions (corresponding to the different years of education) is different from the others?  Provide an answer considering the context of the problem. 
+
+
+Answer:
+Let me begin by running an ANOVA test:
+```{r}
+payAnova = aov(pj$Income2005~pj$Educ, data = pj)
+summary(payAnova)
+```
+
+From my Anova test, a p-value of ~2x10^(-16) was obtained.  This is incredibly small,
+(i.e. p << 0.01) and thus, if the assumptions under the ANOVA test were properly fullfilled,
+then this provides statistically significant (at the alpha = 1x10^(-15) level) evidence that at least one of the group's (based on education) income differs from the rest.  However, it may be good
+to see if my residuals from the ANOVA test follow a normal distribution. 
+A Shapiro Wilks test should help me do this:
+
+```{r}
+shapiro.test(payAnova$residuals)
+```
+
+To visualize the data, I shall make a qqnorm plot of the residual values from the ANOVA.  
+```{r}
+qqnorm(payAnova$residuals, main = "QQNorm Plot of Residuals from ANOVA Test from Payingjobs")
+qqline(payAnova$residuals)
+```
+
+Clearly, the residual qqnorm plot shows that the residuals do not follow a perfect, normal
+distribution. 
+
+Well, since the p-value from the Shapiro test is p << 0.01, it appears that the assumption
+that the data is normally distributed is not supported by this test.  
+Thus, the one-way anova test seems less than idea for this data; however 
+due to the robustness of the ANOVA test to violations of normality and the 
+distribution of the outliers, the results of the anova test (in particular 
+the incredibly small p value) provide statistically significant evidence that at least one mean value
+differs amoungst the groups. 
+
+d. By how many dollars does the mean for the 12, 13-15 and 16 categories exceed that of the <12 category? Provide 95% confidence intervals to support your answer and interpret those intervals considering the context of the problem.
+
+Answer:
+
+I shall use the Tukey HSD to create some 95% confidence intervals:
+
+```{r}
+TukeyHSD(payAnova, ordered=TRUE)
+```
+
+It appears that the mean dollars for the 12, 13-15 and 16 categories exceed that of the <12 category by between [493.1383 2873.580], [1295.5824 3755.096], and [3821.2095 6432.337] respectively, and a mean difference of $1683.3593, $2525.3395, and $5126.7732, respectively. Since all of these
+intervals range from positive to positive values, this data can be interpreted
+that the mean value of those with <12 years of education, on average, 
+have a lower annual income in comparison to those with >12 years of education.  
+This difference is most stark between the <12 and >16 years groups, with an average gap of $5127.  In fact,
+the data suggests that the more years of education a group has above 12 years, the higher than average income.  
+
+
+
+## Problem 2
+
+This problem is based on exercise 23, Chapter 6, The Statistical Sleuth third edition.
+
+*Context of the problem.* To reduce weight, what diet should one combine with exercise? Most studies of human dieting practices have faced problems with high dropout rates and questionable adherence to diet protocol. Some studies comparing low-fat and low-carbohydrate diets have found that low-carb diets produced weight loss early, but that the loss faded after a short time. In an attempt to exert more control on subject adherence, a team of researchers at Ben-Gurion University in Negev, Israel,
+conducted a trial within a single workplace where lunch--the main meal of the day--was provided by the employer under the guidance of the research team. The study ran for two years, with 272 employees completing the entire protocol. The dataset comprises the weight losses (kg) of the participants at the study's conclusion.
+
+```{r}
+library(Sleuth3)
+# dataset for Problem 2
+# use command ?ex0623 to obtain a description of the data
+Diet.Wars = ex0623
+head(Diet.Wars)
+```
+
+
+Assume that you want to find evidence that at least one of the three population means (corresponding to the different diets) is different from the others using one-way Anova.
+
+a. Provide exploratory data analyses of the data. For all figures, provide proper axis labels. 
+
+
+Answer: I shall proceed similarly to the manner in which I explored the first dataset in this Assignment.  Let's look at some boxplots.
+
+Here, LC, LF, and M will refer to Low-Carbohydrate, Low-Fat, and Mediterranean, respectively:
+```{r}
+attach(Diet.Wars)
+
+boxplot(Diet.Wars$WtLoss24 ~ Diet.Wars$Group, horizontal = TRUE, col = c("lightblue", "navy", "pink"), 
+        xlab = "Weight Loss in kg", ylab = "Diet", main = "Histogram of Weight Loss by Diet Group", 
+        names = c("LC", "LF", "M"))
+
+```
+
+Goodness!  The variences for each of these groups is dramatically different.  I see now why we have two different sets of data. Very clever Shai, very clever. Also, there is only a single outlier for the Low-Fat group.   
+
+
+Let me assess just how different these variences are with a Levene test:
+
+```{r}
+levene.test(Diet.Wars$WtLoss24, Diet.Wars$Group)
+```
+
+The p-value of 4.24e-06 shows there is statistically significant differences in the variences of the three groups at the alpha level of <0.0001.  This indicates that the null hypothesis of the variences being equal is not supported by this data, and it should thus be rejected for the alternative hypothesis of the variences being different. Let me look at the actual variences now: 
+
+
+```{r}
+aggregate(Diet.Wars$WtLoss24, by = list(Diet.Wars$Group), FUN = var)
+```
+
+Clearly, the Low-Carbohydrate group has over three times the varience of the Low-Fat group.  Thus, this information along with the Levene test is sufficient to reject the assumption that the data from each individual group shares a common varience.  
+
+Now I shall investigate just how normally distributed the data really is:
+```{r}
+levels = c("Low-Carbohydrate", "Low-Fat", "Mediterranean")
+par(mfrow=c(2,2))
+for (i in levels){
+  nameHere = cbind("Hist of Weight Loss", i, "Diet")
+
+  hist(Diet.Wars$WtLoss24[Diet.Wars$Group ==i], col = "slategray",
+       xlab = "Weight loss in kg", main = nameHere)
+ 
+}
+```
+
+
+```{r}
+attach(mtcars)
+par(mfrow=c(1.5,2.5))
+levels = c("Low-Carbohydrate", "Low-Fat", "Mediterranean")
+for (i in levels){
+  eduNAME = c("QQNorm for Weight Loss ", i, " Diet")
+  qqnorm(Diet.Wars$WtLoss24[Diet.Wars$Group==i], main = eduNAME,)
+  qqline(Diet.Wars$WtLoss24[Diet.Wars$Group==i])
+}
+```
+
+These histograms look quite normally distributed and the qqnorm plots support this idea of normallity, suggesting the data follows a normal distribution within each group with the data.  
+
+
+b. Provide an assessment of the one-way Anova assumptions using the dataset `Diet.Wars`. 
+
+ANSWER:
+
+WITH the data set Diet.Wars, the assumption of equal variences is violated.  This is clearly visualized in the boxplots I created.  This suspicion was then further tested with a Levene.test which rejected the null hypothesis of equal variences at the alpha = <0.00001 level, which is statistically significant.  A last check was made by evaluating the variences themselves and it was discovered that the Low-Carbohydrate group has over three times the varience of the Low-Fat group.  Since the ANOVA test is not robust to this kind of violation, the ANOVA test is not recommended for this data. 
+
+IN terms of the assumption that the data is normally distributed, this assumption appears to be met.  There is only one outlier for the Low-Fat group, and the qqnorm and qqline plots look aggreable to a normal distribution.  However, the variences here are still statistically different, and thus the assumptions of the ANOVA are violated.  
+
+Lastly, there isn't much way to assess if the data was collected in a random and independent manner.  This is more of an untested assumption.
+
+c. Is there evidence of differences in average weight loss after two years among these diets? Provide an answer considering the context of the problem. 
+
+ANSWER:
+Let me assess the differneces with a TukeyHSD test:
+```{r}
+dietAnova = aov(Diet.Wars$WtLoss24~Diet.Wars$Group, data = Diet.Wars)
+
+TukeyHSD(dietAnova, ordered = TRUE)
+```
+
+There appears to be weak evidence that the Low-Carbohydrate and the Low-Fat diet groups have a slight difference in their average weight loss, however the p-value is only statistically significant at the 0.04 level, additionally due to the large differences in variences between the two groups, this is weak evidence against the null hypothesis.  There is no other evidence of differences in average weight loss between any of the other groups.  
+
+d. Which diets appear to be better than others? Provide 95% confidence intervals to support your answer and interpret those intervals considering the context of the problem.
+
+I shall create some confidence intervals:
+```{r}
+require(lawstat)
+dietAnova = aov(Diet.Wars$WtLoss24~Diet.Wars$Group-1, data = Diet.Wars)
+confint(dietAnova, level = 0.95)
+aggregate(Diet.Wars$WtLoss24~Diet.Wars$Group, FUN = mean)
+#TukeyHSD(dietAnova, ordered = TRUE)
+```
+
+
+It appears that the Low-Carbohydrate diet has the largest average weight loss of around 5.5 kgs, however, all three of the groups' 95% confidence intervals overlap with each other.  Thus, there is insufficient evidence to declaritivly state that any of the diets is more successful than the other ones.  
+
+e. Provide a 90% confidence interval for the mean of the three diets. Include interpretations of these intervals considering the context of the problem.
+
+
+```{r}
+dietAnova = aov(Diet.Wars$WtLoss24~Diet.Wars$Group-1, data = Diet.Wars)
+confint(dietAnova, level = 0.90)
+```
+
+At the 90% confidence interval there is statistically significant evidence that the Low-Carb diet results in a larger weight loss in kg in comparison to the Low-Fat diet.  This suggest (however weakly) that we are 90% confident that the Low-Carb diet is more successful at weight loss compared to the Low-Fat diet.  

@@ -1,0 +1,408 @@
+---
+title: "Stat 210:Assigment 4, by:Samuel Eure"
+
+author: "Samuel Eure"
+date: "2/21/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Due Date**: Friday, February 23.
+
+
+## Problem 1
+This problem is based on exercise 25, Chapter 5, The Statistical Sleuth third edition, but has to be solved using regression models.
+
+
+```{r}
+library(Sleuth3)
+# dataset for Problem 1
+# use command ?ex1124 to obtain a description of the data
+natal = ex1124
+tmp = as.vector(natal$Type)
+tmp = ifelse(tmp=="C","Carnivore","NoCarnivore")
+natal$Type = as.factor(tmp)  
+head(natal)
+```
+
+Consider three different models. In model 1, work with the response variable and the continuous predictor in their original scale. In model 2, work with the continuous predictor in its original scale and transform the response variable using log. In model 3, transform the response variable and the continuous predictor using log.
+
+I shall begin with a look at the data:
+
+```{r}
+par(mfrow=(c(1,2)))
+plot(natal$BodyMass, natal$MaxDist, xlab = "Body Mass",
+     ylab = "Max Distance", main = "Body Mass vs Max distance", col = 'navy')
+boxplot(natal$MaxDist~natal$Type, xlab = "Diet", ylab = "Max Distance",
+        main = "Diet vs Max distance", col = 'navy')
+```
+
+Well, this data looks quite wild... quite beastly!  Let's create some models:
+
+```{r}
+model1 = lm(MaxDist~BodyMass+Type, data = natal)
+
+model2 = lm(log(MaxDist)~BodyMass+Type, data = natal)
+
+model3 = lm(log(MaxDist)~log(BodyMass)+Type,data = natal)
+```
+
+##Model1 Summary
+```{r}
+summary(model1)
+```
+
+##Model2 Summary
+```{r}
+summary(model2)
+```
+
+##Model3 Summary
+```{r}
+summary(model3)
+```
+
+
+a. For model 1, 2, and 3, considering the context of the problem, interpret the regression coefficient associated with each of the predictors. In particular, for the coefficient associated with `BodyMass`, and depending on the transformation used, provide an interpretation when this predictor increases by one unit or when it doubles its value. 
+
+#Model1
+```{r}
+s1 = summary(model1)
+s1$coefficients
+```
+
+From model1, the p values for the intercept of the regression line, the coefficient of BodyMass, and the coefficient of Diet are all statistically significant at the 0.04 value, however the degree at which they are sigificant varies. My intercept has a high degree of significance with a p value > 3e-6, and my Diet coefficient p value is similar, however the p value for the coefficient of my Body mass is only 0.038, which is statistically significant, but still quite large. In sum, I can reject all three of my null hypotheses that the coefficients of any of my variables is zero, and thus, I accept the alternative hypothesis that they are nonzero.  
+
+First, let me clarify the estimate for the diet type.  The variable for diet type is a boolean which is 1 if the diet type if NoCarnivore and 0 if Carnivore.  Thus, from the estimate I obtained, I expect a Carnivore to travel on average 105.19 units of distance (I'm guessing in miles or kilometers, however the assignment doesn't seem to specify this anywhere) MORE than a NoCarnivore -- if all other marginal values are kept constant!
+
+Now, for every increase in one in body mass (again, the units are not provided) I would expect the average MaxDistance traveled to increase by ~ 0.3 units of distance, as presented from the coeffcient of BodyMass -- if all other values are kept constant!  Thus, for every ten increases in bodymass, I expect an average increment of 3 in MaxDistance -- with all else is constant.  Put another way, if an animal's Body Mass doubles (with all else kept constant), I expect it's maximum distance travled to increase by a factor of ~0.3.
+
+However, my R-squarred value is quite poor here (only ~.25), so my regression line isn't that useful.  
+
+#Model2
+```{r}
+s2 = summary(model2)
+s2$coefficients
+```
+
+After taking the log of the response variable (the max distance traveled) the p-values for each of my coefficients dramatically decreased, while my R-squarred value increased from 0.25 to ~0.4!  Wow!
+
+With a p value of 3.7e-10, I have statistically significant evidence to reject the null hypothesis of my intercept being zero. Thus, I accept the alternative hypothesis that it is nonzero.  
+With a p value of 0.00046, I have statistically significant evidence to reject the null hypothesis of my BodyMass coefficient being zero. Thus, I accept the alternative hypothesis that it is nonzero.  
+With a p value of 5.7e-07, I have statistically significant evidence to reject the null hypothesis of my Diet coefficient being zero. Thus, I accept the alternative hypothesis that it is nonzero. 
+
+Given my coefficient for Diet, I expect the median max distance traveled to decrease by a factor of 1/(exp{3.113}) if an animal is NoCarnivore compared to an animal being carnivore, if all else is kept constant.  Similarly, if an animals body mass increases by 1, I expect the median max distance traveled to increase by a factor of exp{0.01154}, and if the body mass is doubled, I expect the median max distance traveled to increase by a factor of exp{2}.  
+
+#Model3
+```{r}
+s3 = summary(model3)
+s3$coefficients
+```
+
+Just as with model 2 and 1, the p values I have obtained present statistically significant evidence that the null hypotheses are false, thus, the intercept of  my regression line is nonzero along with all of the coefficients in my multiple regression model.  Given the R^2 value of 0.658, this regression explains quite a bit about the nature of Maximum distance traveled.  Given my coefficient for diet (-2.265), I expect the median NoCarnivore to travel a max distance which is 1/exp{2.265} times that of a carnivore, if all else is kept constant.  Since I took the log of max distance and the log of body mass, I expect an animal which is twice as massive to travel a distance which is a factor of 2^(0.54211) as far, if all else are kept constant. It is more difficult to explain how this relationship works if the body mass increases by a single unit.  
+
+
+
+b. For model 1, 2, and 3, provide a 95% confidence interval for the regression coefficients associated the with the predictors. Include interpretations of these intervals considering the context of the problem. In particular, for the coefficient associated with `BodyMass`, and depending on the transformation used, provide an interpretation when this predictor increases by one unit or when it doubles its value. 
+
+#model1
+```{r}
+confint(model1)
+```
+I am 95% confidenct that a Nocarnivore will travel 155.09 to 55.3 units of distance on average less than a carnivore if all else is kept the same.  I am  95% confidenct that a 1 unit increase in body mass will lead to a 0.017 to 0.576 increase in max distance traveled on average if all is kept constant.  
+
+
+#model2
+```{r}
+confint(model2)
+```
+
+I am 95% confidenct that median max distance will decrease by a factor of 1/(exp{1.998}) to 1/(exp{4.227}) if an animal is NoCarnivore compared to an animal being carnivore, if all else is kept constant.  Similarly,  I am 95% confidenct that median max distance will increase by a factor of exp{0.0053} to exp{0.01778} if body mass increases by a unit of 1, and if the body mass is doubled, I expect the median max distance traveled to increase by a factor of exp{0.0053x(original body mass)}^2 to exp{0.01778x(original bodymass)}^2.  
+
+
+#model3
+```{r}
+confint(model3)
+```
+
+I am 95% confidenct that the median max distance will of a No carnivore is 1/exp{3.11} to 1/exp{1.423} times that of a carnivore, if all else is kept constant. Since I took the log of max distance and the log of body mass, I am 95% confident that an animal which is twice as massive will travel a distance which is a factor of 2^(0.41336) to 2^(0.67) as far, if all else are kept constant.  It is more difficult to explain how this relationship works if the body mass increases by a single unit. 
+
+
+c.  For model 1, 2, and 3, provide a 95% confidence interval for the mean (or median, depending on the model) for the two following mammal profiles:
+```
+             Type  BodyMass
+1   Carnivore  9.756444
+2 NoCarnivore 33.817500
+```
+Include interpretations of these intervals considering the context of the problem.
+
+#model 1
+```{r}
+rm(newdata)
+Data1= data.frame(Type="Carnivore", BodyMass =9.756444)
+Data2 = data.frame(Type = "NoCarnivore", BodyMass= 33.817500)
+
+newdata = rbind(Data1, Data2)
+
+p1 = predict.lm(model1, newdata = newdata, interval = "confidence")
+p1
+```
+
+I am 95% confident that the average distance traveled by a Carnivore of mass 9.76 will be between 81.14 and 164.95 units of distance.  
+
+I am 95% confident that a NoCarnivore of mass 33.818 will travel between zero and 51.22401 units of distance.  
+
+
+#model 2
+```{r}
+p2 = predict.lm(model2, newdata = newdata, interval = "confidence")
+p2
+```
+
+I am 95% confident that the median distance traveled by a Carnivore of mass 9.76 will be between e^(2.7) and e^(4.55) units of distance.  
+
+I am 95% confident that a NoCarnivore of mass 33.818 will travel between exp{0.1933} and exp{1.365} units of distance.
+
+#model 3
+```{r}
+p3 = predict.lm(model3, newdata = newdata, interval = "confidence")
+p3
+```
+
+I am 95% confident that the median distance traveled by a Carnivore of mass 9.76 will be between e^(3.664) and e^(5.12) units of distance.  
+
+I am 95% confident that a NoCarnivore of mass 33.818 will travel between exp{2.15} and exp{3.5} units of distance.
+
+
+d. Provide an assessment of the multiple linear regression assumptions for model 1, 2, and 3. Which model do you think is more appropriate? Justify you answer.  
+
+Let me take a look at the data with respect to the different ways of graphing the data. 
+
+#Model1
+```{r}
+par(mfrow = c(1,3))
+
+plot(natal$BodyMass, model1$residuals , xlab = "Body Mass",
+     ylab = "Residuals", main = "Model1: Residuals vs Body Mass", col = 'navy')
+abline(h=0,lty = 2)
+panel.smooth(natal$BodyMass, model1$residuals)
+
+plot(model1$fitted.values, model1$residuals, ylab = "Residuals",
+     xlab = "Fitted Values", main = "Model1: Residuals vs Fitted Values", col = 'red')
+abline(h=0, lty = 2)
+panel.smooth(model1$fitted.values, model1$residual)
+
+boxplot(model1$residuals ~ natal$Type,  ylab = "Residuals", 
+        xlab = "Diet Type", main = "Residuals vs Diet Type")
+```
+```{r}
+shapiro.test(model1$residuals)
+```
+Well, clearly, my model violates teh assumption of equal variance across all body masses and diet types, as seen in the decline of varience of blue data points across body mass.  Also, for my fitted values, it seems like all my residual values are either above or tightly clumped near the zero line; if one simply observes the red lines, one can see this this violation. Also, my model violates the assumption of normality of residual values given my Shapiro-Wilks has a p value of ~0.000000004, which allows me to reject the null hypothesis of normality.  This model is quite poor.  I do not believe the assumptions are met.
+
+#Model2
+```{r}
+par(mfrow = c(1,3))
+
+plot(natal$BodyMass, model2$residuals , xlab = "Body Mass", 
+     ylab = "Residuals", main = "Model2: Residuals vs Body Mass", col = 'navy')
+abline(h=0,lty = 2)
+panel.smooth(natal$BodyMass, model2$residuals)
+
+plot(model2$fitted.values, model2$residuals, ylab = "Residuals",
+     xlab = "Fitted Values", main = "Model2: Residuals vs Fitted Values", col = 'red')
+abline(h=0, lty = 2)
+panel.smooth(model2$fitted.values, model2$residuals)
+
+boxplot(model2$residuals ~ natal$Type,  ylab = "Residuals",
+        xlab = "Diet Type", main = "Residuals vs Diet Type")
+```
+```{r}
+shapiro.test(model2$residuals)
+```
+
+For model 2, it appears that the assumption of normailty in my residual values was met (as given my my p value of 0.538 from the Shapiro test), and, the assumption of equal varience for different diets was met (these variences in my boxplots look close, although the carnivores' varience is slightly higher).  However, there does not seem to be equal varience for the residual values for different Body Masses, as seen in the decline in varience as body mass increases.  Thus, model 2 is better than model 1, however model 2 is not a very good model nevertheless.  
+
+#Model3
+```{r}
+par(mfrow = c(1,3))
+
+plot(log(natal$BodyMass), model3$residuals , xlab = "log(Body Mass)", 
+     ylab = "Residuals", main = "Model3: Residuals vs Log(Body Mass)", col = 'navy')
+abline(h=0,lty = 2)
+panel.smooth(log(natal$BodyMass), model2$residuals)
+
+plot(model3$fitted.values, model3$residuals, ylab = "Residuals", 
+     xlab = "Fitted Values", main = "Model3: Residuals vs Fitted Values", col = 'red')
+abline(h=0, lty = 2)
+panel.smooth(model3$fitted.values, model3$residuals)
+
+boxplot(model3$residuals ~ natal$Type,  ylab = "Residuals", 
+        xlab = "Diet Type", main = "Residuals vs Diet Type")
+```
+
+```{r}
+hist(model3$residuals, col = 'navy', xlab = "residuals",
+     main = "Histogram of Residuals Model 3", breaks = 10)
+       
+```
+
+From my box plot, I can easily see that the residual values have equal varience for the two categories of diets; however, from my left and center plot, It looks like the residuals for different log(Bodymass) still are uneven across body mass.
+From my histogram, I can see that the residual value are skewed left, however the the data look like it's in the shape of a normal distribution. Overall,  I would say the assumptions of equal varience are are not met, and the assumption of normality is not met, but they are 'not met' by only a little bit since the residuals based on body mass seems to have similar variences, and the residual varience based on diet clearly has equal varience. 
+
+I would not reccommend using any of these regression models for fitting this data, but if I had to choose one (which I do, so I can succeed in this course) I would pick model 3 since residual values vs log(body mass) look somewhat reasonable to perform a regression on, while equivalent the model 2 and model 1 graphs look preposterous in terms of the violations in the assumptions of equal varience.  I would further say that the violation to the normality of the residual values vs the fitted values aren't terribly off.  
+
+
+## Problem 2
+This problem is based on exercise 24, Chapter 11, The Statistical Sleuth third edition.
+
+*Context of the problem.* The dataset `payingjobs` contains annual incomes in 2005 of a random sample of 2,584 Americans who were selected for the National Longitudinal Survey of Youth in 1979 and who had paying jobs in 2005. The data set also includes a code for the number of years of education that each individual had completed by 2006: <12, 12, 13-15, 16, and >16. Assume that you want to find evidence that at least one of the five population means (corresponding to the different years of education) is different from the others using multiple linear regression models.
+
+```{r}
+library(Sleuth3)
+# dataset for Problem 2
+# use command ?ex0525 to obtain a description of the data
+payingjobs = ex0525
+payingjobs$Educ = relevel(payingjobs$Educ,ref="<12")
+head(payingjobs)
+payingjobs$pay = payingjobs$Income2005
+```
+
+Consider two different models. In model 1, work with the response variable in its original scale (without transformations). In model 2, transform the response variable using log.
+
+a. Under model 1 and 2, how strong is the evidence that at least one of the five population means (corresponding to the different years of education) is different from the others?  Provide an answer considering the context of the problem. 
+
+Let me first look at education in reference to <12 year of education, then make my models.
+
+```{r}
+payingjobs$Educ = relevel(payingjobs$Educ, ref ="<12")
+
+Model1 = lm(pay~Educ, data = payingjobs)
+summary(Model1)
+```
+There is statistically significant evidence that all of the coefficints for levels of education differ from that of <12years of education.  This is seen by the fact that all the coefficients for Educ12 through Educ>16 are positive and have corresponding p values >0.05 (however the p values for all education levels beyond 12 years are 0.001>>p). However, the evidence that there is a difference between the average income of Educ<12 and Educ12 is weaker than that those of the other education levels since the p value is only 0.03.  Since the coefficints increase as the years of education increase, this suggests that the more years of education one has (if all else is constant), the higher one's income will be.   
+
+
+```{r}
+Model2 = lm(log(pay)~Educ, data = payingjobs)
+summary(Model2)
+```
+
+Under model two, the evidence that at least one of the populations has a log(mean) different form that of the others dramatically increases, as seen in the decrease in p value by a factor of over 100 for the Educ12 group, refuting the null hypotheses that the coefficients for the differents levels of education are zero in comparison to Educ<12 and supporting the alternative hypotheses that these coefficients are nonzero.  
+
+
+In summary, there is statistically significant evidence at the 2e-16 p value level that the average income of someone who has >16 years of education is different and higher than that someone of <12 years of education.  
+
+b. Under model 1 and 2, by how many dollars does the mean for the 12 and 16 categories exceed that of the <12 category? Provide 95% confidence intervals to support your answer and interpret those intervals considering the context of the problem.
+
+Here are the requested confidence intervals:
+
+#model 1
+```{r}
+confint(Model1)
+Model1$coefficients
+```
+
+I predict an average difference of 8563 dollars between that of the Educ<12 group and the Educ12 group, and am 95% confident that those with 12 years of education have an average income which is between 712 dollars to 16407 dollars higher than those with <12 years of education.  
+
+I predict an average difference of 48554.014 dollars between that of the Educ<12 group and the Educ>16 group, and am 95% confident that those with >16 years of education have an average income which is between 39950.3161 dollars to 57157.71 dollars higher than those with <12 years of education.  
+
+#model 2
+```{r}
+confint(Model2)
+Model2$coefficients
+```
+
+I predict the median member of Educ12 group to make exp{0.328} times more money than the median of the Educ<12 group, and am 95% confident that they make between exp{0.16134} and exp{0.4944} times more money.  
+
+I predict the the median member of the Educ>16 group to make exp{0.9985617} times more money than those of the Educ<12 group and am 95% confident that they make between exp{0.8158927} and exp{1.1812308} times more money.  
+
+c. Under model 1 and 2, provide a 95% prediction interval for the mean (or median, depending on the model) annual income for subjects between 13 and 15 years of education. Include interpretations of these intervals considering the context of the problem.
+
+Given my intercept and the confidence intervals for the coeficients: 
+
+```{r}
+Data1 = data.frame(Educ = "13-15")
+newdata = rbind(Data1)
+P1 = predict.lm(Model1, newdata = newdata, interval = "confidence")
+P1
+```
+
+I am 95% confident that the mean person with 13-15 years of education will have an income between 41500.61 and 48251.3 dollars.     
+
+From model 2:
+
+```{r}
+Data1 = data.frame(Educ = "13-15")
+newdata = rbind(Data1)
+P2 = predict.lm(Model2, newdata = newdata, interval = "confidence")
+exp(P2)
+```
+
+Given my model2, I am 95% confident that the median income of a person with 13-15 years of education will be between 30319 and 34991 dollars. 
+
+d. Under model 1 and 2, provide a 95% confidence interval for the mean (or median, depending on the model) annual income for subjects with less than 12 years of education. Include interpretations of these intervals considering the context of the problem.
+
+These intervals are simply the intercept intervals since <12 years of education as chosen as the relative point for the regression.  Thus from model one:
+
+```{r}
+Data1 = data.frame(Educ = "<12")
+newdata = rbind(Data1)
+P3 = predict.lm(Model1, newdata = newdata, interval = "confidence")
+P3
+```
+
+I am 95% confident that the mean income for a subject with less than 12 years of education is between 20933 and 35669 dollars.  
+
+From Model 2: 
+
+```{r}
+Data1 = data.frame(Educ = "<12")
+newdata = rbind(Data1)
+P4 = predict.lm(Model2, newdata = newdata, interval = "confidence")
+exp(P4)
+```
+
+I am 95% confident that the median subject from the <12 years of education group has an income between 17032 and 23290 dollars.  
+
+
+e. Provide an assessment of the multiple linear regression assumptions for model 1 and 2. Which model do you think is more appropriate? Justify you answer. 
+
+#Model1
+```{r}
+par(mfrow = c(1,3))
+
+
+boxplot(Model1$residuals ~ payingjobs$Educ, xlab = "Education", ylab ="Residuals"
+        , main = "Model1: Residuals vs Education", col = 'navy')
+
+qqnorm(Model1$residuals)
+qqline(Model1$residuals)
+
+boxplot(payingjobs$Income2005~payingjobs$Educ, xlab = "Years of Education",
+        ylab = "Income", main = "Income vs Education")
+
+```
+
+As seen in my box plots, the varience of both the residual values and the orignial values of the income based on education is not equal among all levels of education.  Given this, I would say the assumption of equal varience for each group is violated.  Additionally, given my qqnorm plot and line, the residual values are not following a normal distribution.  Thus, the assumption of normality amongst residual values is violated.  
+
+#Model2
+```{r}
+par(mfrow = c(1,3))
+
+boxplot(Model2$residuals ~ payingjobs$Educ , xlab = "Education", ylab = "Residuals", main = "Model2: Residuals vs Education", col = 'navy')
+
+qqnorm(Model2$residuals)
+qqline(Model2$residuals)
+
+boxplot(log(payingjobs$Income2005)~payingjobs$Educ, xlab = "Years of Education",
+        ylab = "Income", main = "Income vs Education")
+```
+
+Given my two box plots, clearly the variences between different groups of education are closer together, however there is still some small differences in the overall variences between the different groups.  Moreover, from my qqnorm plot, I can see that the assumption that the residual values are normally distributed are not supported, and thus this assumption is violated.  
+
+In summary, I believe model2 to be the better modelfor this regression since the log transformation pulls the variences between the different data points together and slightly helped the normality of the residuals.  However, both models are, again, quite blaintantly violating the assumptions of the regression analysis, and are thus quite poor in themeselves.  
+

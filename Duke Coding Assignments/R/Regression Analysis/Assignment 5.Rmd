@@ -1,0 +1,407 @@
+---
+title: 'STA 210: Assignment 5'
+author: "Samuel Eure"
+date: "3/29/2018"
+output: pdf_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+This assignment involves multiple linear regression with interactions. Ideally, use this R Markdown template to provide the answers to all problems. The assignment must be printed and turned in at the beginning of class on the due date. Useful R commands are in the R scripts on Sakai. Additionally, the website https://www.statmethods.net/r-tutorial/index.html includes useful commands for analysis and graphics.
+
+**Due Date**: Friday, March 30.
+
+*Context of the problems* `Data500` is a synthetic dataset containing annual salaries in 2017 of 500 employees who work as office clerks, cashiers, or waiters. The dataset includes the following information for each individual:
+
+- 'Sex' - whether the individual is male or female
+- 'Occ' - occupation: OffClerk = office clerk, Cashier = cashier, Waiter = waiter
+- 'Age' - age in years
+- 'Exper' - months of experience in the current position
+- 'cAge' - age in years minus the dataset's mean age 
+- 'cExper' - months of experience in the current position minus the dataset's mean months of experience
+- 'Exper50' - months of experience in the current position minus 50 months
+- 'Wage' - annual salary 
+
+
+```{r}
+require(car)
+load("Data500.RData")
+head(Data500)
+```
+
+**1.** Consider model1, model2, and model3
+```{r}
+model1 = lm(log(Wage) ~  Age + Sex + Exper + Occ, data = Data500)
+model2 = lm(Wage ~   Age + Sex + Exper + Occ + Exper*Sex + Sex*Occ, data = Data500)
+model3 = lm(log(Wage) ~   Age + Sex + log(Exper) + Occ + log(Exper)*Occ + log(Exper)*Sex, data = Data500)
+```
+
+**1.1** For each of the models, provide and interpret an estimate of how much the conditional mean (or median) of salary changes when employees' experience increases by one month (or triples). Consider the context of the problem in your interpretations.
+
+- If you need to fix Occ, then only provide interpretations for `Cashier` and `Waiter`.
+
+- If you need to fix sex, then only provide an interpretation for `Male`.
+
+- If you need to fix Occ and Sex, then only provide interpretations for female cashiers and male waiters.
+
+```{r}
+model1 = lm(data$Wage ~  data$Sex + data$Occ + data$Sex*data$Occ  + data$Age + data$Exper)
+
+
+model2 = lm(data$Wage ~ (data$Sex + data$Occ + data$Exper)^2 )
+
+CI = matrix(0,nrow=1,ncol=length(model2$coefficients))
+colnames(CI) = names(model2$coefficients)
+CI[1,"SexMale"] = 1
+CI[1,"SexMale:OccOffClerk"] = 1*1
+CIvalue = confint(glht(model2,linfct=CI))
+CIvalue$confint[1,]
+predict.
+
+
+```
+
+
+
+##Answer
+### Model 1
+```{r}
+m1e = model1$coefficients['Exper']
+confM1 = confint(model1)
+m1e
+#expected increase
+exp(m1e)
+#confidence intervals
+exp(confM1)
+```
+For Model 1, if experience is increased by 1 month, then I expect the MEDIAN anual salary of any particular worker to increase by a factor of 1.003052, and am 95% confident that the median salary will by a factor between 1.0007 and 1.0054.  
+
+### Model 2
+```{r}
+m2e = model2$coefficients['Exper']
+m2SandE = model2$coefficients['SexMale:Exper']
+confM2 = confint(model2)
+
+totalChange = m2e+m2SandE
+totalChange
+confM2
+```
+I need to fix for sex in this instance, so I shall interpret males. It appears the default is females since there is a SexMale variable.   
+For Model 2, I expect males who have one month of experience more than other males to have a MEAN anual salery which is \$81.19 larger, and I am 95% confident that the increase will be between \$4.98 and $157.09.  
+
+### Model 3
+```{r}
+m3le = model3$coefficients['log(Exper)']
+confM3 = confint(model3)
+m3le
+3^m3le
+3^confM3
+```
+For Model 3, if experience is tripled for a female cashier, then I expect the MEDIAN anual salary to increase by a factor of 1.022013, and am 95% confident the median salary will change by a factor between 0.954 and 1.095.  This is not very informative, however I don't even have statitically significant evidence at the 0.05 level that the coefficient for log(Exper) is not zero.  
+```{r}
+m3e = model3$coefficients
+m3e
+totalChange = m3e['log(Exper)'] + m3e['log(Exper):OccWaiter']+m3e['SexMale:log(Exper)']
+totalChange
+3^totalChange
+```
+If experience is tripled for a male waiter, then I expect the median anual salary to increase by a factor of 1.021025. 
+
+**1.2.** For each of the models, provide and interpret an estimate of how much the conditional mean (or median) of salary changes when employees' age increases by one year. Consider the context of the problem in your interpretations.
+
+##Answer
+### Model 1
+```{r}
+exp(model1$coefficients['Age'])
+exp(confint(model1))
+```
+For Model 1, if age is increased by one year, then I expect the median anual salary of workers to increase by a factor of 1.00923, and am 95% confident that the median salary will change by a factor between .9946 and 1.0241.  
+
+### Model 2
+```{r}
+model2$coefficients['Age']
+confint((model2))
+```
+For Model 2, if age is increased by 1 year, then I expect the mean anual salary to increase by $228.42, and am 95% confidenct the median salary will be between \$52.22 less, or \$509.05 more.  
+
+### Model 3
+```{r}
+exp(model3$coefficients['Age'])
+exp(confint(model3))
+```
+For Model 3, if age is increased by 1 year, then I expect the median anual salary of workers to increase by a factor of 1.009584, and am 95% confident that the median salary will change by a factor between .9985 and 1.0208.  
+
+**2.** Consider model1, model2, and model3
+```{r}
+model1 = lm(log(Wage) ~  Age + Sex + Exper + Occ, data = Data500)
+model2 = lm(Wage ~   Age + Sex + Exper + Occ +  Occ*Exper, data = Data500)
+model3 = lm(log(Wage) ~   Age + Sex + log(Exper) + Occ + Occ*log(Exper) + Sex*Occ, data = Data500)
+```
+
+**2.1.** For each model, provide and interpret an estimate of how much the conditional mean (or median) of salary varies between Cashier and Waiter. If you need to fix Exper, fix it at 40 months. If you need to fix Sex, fix it at `Male`. Consider the context of the problem in your interpretations.  
+
+# Answer
+
+## Model 1
+```{r}
+exp(model1$coefficients['OccWaiter'])
+exp(confint(model1))
+```
+
+I expect the median salary of a Waiter to be 0.93285 times that of a Cashier anually if all else is constant, and am 95% confident that the median salary of a Waiter is a factor of .897 to 0.97 that of a the median cashier's.  
+
+##Model 2
+```{r}
+summary(model2)
+Wait = model2$coefficients['OccWaiter']
+WaitExp = model2$coefficients['Exper:OccWaiter']*40
+totalChange = Wait + WaitExp
+totalChange
+confint(model2)*40+Wait
+```
+
+I expect the mean salary of a waiter with 40 months of experience to be $1,586.97 LESS anually than that of a cashier, and am 95% confident is is between \$3480.914 less and \$306.9758 more anually.  
+
+##Model 3
+```{r}
+exp(model3$coefficients['OccWaiter']+
+      model3$coefficients['SexMale:OccWaiter'])*40^(model3$coefficients['log(Exper):OccWaiter'])
+```
+For male waiters and cashiers with 40 months of experience, I expect the median salary of a waiter to be 0.9264 times that of a male cashier anually.  
+
+
+**2.2.** For each model, provide and interpret an estimate of how much the conditional mean (or median) of salary varies between Waiter and Office Clerk. If you need to fix Exper, fix it at 40 months. If you need to fix Sex, fix it at `Female`. Consider the context of the problem in your interpretations.
+
+#Answer
+
+##Model1
+Well, since I base my predictions from cashiers, this will be tricky. If I want the relative change between salary of waiter and office clerks, I can predict each of their medians (y intercepts) and then take the ratio of these two values.  
+```{r}
+model1$coefficients
+medianCashier = exp(model1$coefficients['(Intercept)'])
+medianCashier
+medianWaiter = medianCashier*exp(model1$coefficients['OccWaiter'])
+medianWaiter
+medianOffClerk = medianCashier*exp(model1$coefficients['OccOffClerk'])
+medianOffClerk
+changeBetweenWaiterAndClerk = medianWaiter/medianOffClerk
+changeBetweenWaiterAndClerk
+```
+
+Thus, for any gender or level of experience, I expect the median Waiter to make 1.0906 times that of the median Office Clerk anually with identical characteristics and credentials (well, they may not have the same credentials due to the differences in their profession, however this is irrelevant for this assignment. Prof. B may have been wanting this question answered in a different way, however I think my method is well justified.) 
+
+##Model2
+```{r}
+summary(model2)
+Beta2 = model2$coefficients
+Beta2
+Waiter = Beta2['OccWaiter']+40*Beta2['Exper:OccWaiter']
+OffClerk = Beta2['OccOffClerk']+40*Beta2['Exper:OccOffClerk']
+Waiter - OffClerk
+```
+I expect the mean waiter with 40 months of experience to make $1067.83 more than the mean Office Clerk with 40 months of experience, anually.  
+
+##Model3
+
+```{r}
+beta3 = model3$coefficients
+beta3
+Waiter = exp(beta3['OccWaiter'])*40^beta3['log(Exper):OccWaiter']
+OffClerk = exp(beta3['OccWaiter'])*40^beta3['log(Exper):OccOffClerk']
+OffClerk/Waiter
+```
+
+I expect the median anual salary of a FEMALE office clerk with 40 months of experience to be 1.708924   times that of the median anual salary of a FEMALE waiter (or waitress, if she prefers) with 40 months of experience.  
+
+**3.** Consider model1, model2, and model3
+```{r}
+model1 = lm(log(Wage) ~  cAge + Sex + cExper + Occ, data = Data500)
+model2 = lm(Wage ~   cAge + Sex + Exper50 + Occ +  Sex*Exper50, data = Data500)
+model3 = lm(log(Wage) ~   cAge + Sex + log(Exper) + Occ + Sex*log(Exper) + Sex*Occ, data = Data500)
+```
+
+**3.1** Considering the context of the problem, provide an interpretation of each model's intercept.
+
+#Answer
+I will make the grand assumption that this question is asking for the intercept of the baseline for each model, for each model technically has multiple intercepts depending on the current categorical variables being implemented.  
+
+##Model 1
+Given the context of the problem, the baseline intercept refers to the median log of the wages of female cashiers who have the mean age and mean months of experience from all the people observed.  
+
+##Model 2
+This baseline intercept refers to the mean of wages of female cashiers who have the average age of all the people observed and who have been working in their current position for 50 months (i.e. they have 50 months of experience).   
+
+##Model 3
+This baseline intercept refers to the median log of the wages of a women cashiers who have the average age and who have minimal (no) experience in their position.  I should really say 0 months of experience, however log(0) is undefined, so I don't want to say that.  
+
+Since they have the job, we should just round up and say that they have less than or equal to 1 month of experience, so that this variable is log(exper = 1) = 0.  We could say that female cashiers of the average age have a median log(starting salary) equal to the intercept of this basline, since it usually takes about a month to train someone to be adequite for the job they are performing.  
+
+**4.** Consider model1 and model2
+```{r}
+model1 = lm(Wage ~    (Age + Sex + Exper + Occ)^2, data = Data500)
+model2 = lm(Wage ~    (cAge + Sex + cExper + Occ)^2, data = Data500)
+```
+
+**4.1.** Provide an assessment of multicollinearity for model1 and model2 using GVIFs. 
+
+#Answer
+
+##Model 1
+
+```{r}
+summary(model1)
+vif(model1)
+```
+
+Well, I have some incredibly large "GVIF^(1/(2*Df))" and GVIF values.  However, I remember from lecture that when I am looking at categorical variables, I can their GVIF scores if they are large.  The only one's I should really be concerned with are the continuous variables, like age and experience.  Since age and experience do infact have GVIF scores above 10 and GVIF(1/2DF) scores above 3.5, I smell trouble. This could be due to the quadratic and interaction terms we have added. I remember from lecture that these terms can lead to multicollinearity.  It might be better to knock out some of these interacting terms to remove so colinearity. Indeed, the p values for Exper and Age are 0.357238 and 0.587534, respectively. This may very well be due to multicollinearity.  
+
+##Model 2
+```{r}
+vif(model2)
+summary(model2)
+```
+Well, it seems like the using the cExper and cAge helped quite a bit with the GIV values, and this now SEEMS preferable to the other model, however I still see that there is horrendous multicollinearities present in the model by the large GVIF scores of 57 and 54.22 for cAge and cExper, respectively.  Their GVIF^(1/2df) scores are well above 3.5 as well (both around 7.4), which indicates multicolinearities. 
+
+
+**4.2.** Does centering the variables Age and Exper in model2 help to reduce the multicollinearity issue? Explain your answer.
+
+Both models are impregnated with multicolinearity, and although centering the Age and Exper very slightly reduced GIV values that we actually need to focus on (cAge and cExper, although it severely reduces the GIVs of the categorical variables, however those are less important in this context), if one examines the p values of these variables before and after, they both actually increase!? The whole problem with multicollinearity is that it increases our p values and makes intervals and interpretations more difficult, so centering the values didn't really help much.   
+
+
+**5.** Consider model1 and model2
+```{r}
+model1 = lm(Wage ~    (cAge + Sex + cExper + Occ)^2, data = Data500)
+model2 = lm(Wage ~    (cAge + Sex + Occ)^2, data = Data500)
+```
+
+**5.1.** Does removing cExper help to mitigate the problem of multicollinearity? Explain your answer.
+#Answer
+```{r}
+vif(model1)
+vif(model2)
+```
+Yes. Yes it does. As shown above, the GVIF and GVIF^1/2df scores reduce quite a bit after removing cExper. In fact, removing it lower's every variables GVIF score (besides Sex:Occ, which is a categorical variable anyway and has a GVIF^1/2df below 2 anyway, so it's probably okay) below 6, which isn't terrible.  That being said, the GVIF scores of cAge is 5.55, which is larger than 4 and is thus still large enough to bring me concerns of multicoliniearity, expecially since the GVIF^1/2df score for cAge is 2.36, which is larger than 2 and thus needs to be investigated.  
+
+However, to directly direct this question, removing cExper mitigates the problem of multicollinearity, which is probably expected since it is possible that age and experience are correlated since experience can only come with age in this context.  
+
+**5.2.** Does removing cExper have any effect on whether the effect of age is significant? Explain your answer.
+
+#Answer
+Yes. Yes it does. As shown below...
+```{r}
+summary(model1)
+summary(model2)
+```
+The p value for cAge decreases from 0.736 to 0.00161, which is statistically significant at the 0.002 value, which would be accepted by the majority of the scientific and statistical commnity as statistically significant, unlike cAge's original p value of 0.736.  
+
+Thus, given model2, we can say that the coefficient of cAge is non-zero with respect to how it affects the average age of female cashiers. 
+
+**6.**  Consider the following models
+```{r}
+model1 = lm(Wage ~  cAge + cExper + Sex + Occ, data = Data500)
+model2 = lm(Wage ~  cAge + cExper + Sex + Occ + cExper*Occ, data = Data500)
+model3 = lm(Wage ~  cAge + cExper + Sex + Occ + Sex*Occ, data = Data500)
+model4 = lm(Wage ~  cAge + cExper + Sex + Occ + cExper*Occ + Sex*Occ, data = Data500)
+model5 = lm(Wage ~  cAge + cExper + Sex + Occ + cExper*Occ + Sex*cExper + Sex*Occ, data = Data500)
+```
+
+**6.1.** Evaluate models 1-5 and determine whether each of them fits the data well based on residual analysis. 
+
+If the model does not fit the data well, provide only one residual plot that illustrates so. 
+If the model fits the data well, simply indicate that this is the case.
+
+#Answer
+
+##Model 1
+Model 1 clearly shows a trend with it's residuals vs fitted values, and it appears a quadratic line could fit the plot better than a horizontal linear fit.  This does not fit well
+```{r}
+plot(model1$fitted.values,model1$residuals, data = Data500)
+panel.smooth(model1$fitted.values, model1$residuals)
+abline(h=0,lty=3)
+```
+
+##Model 2
+Just as with model 1, there seems to be a trend with the residuals vs fitted values. This isn't ideal. 
+```{r}
+plot(model2$fitted.values,model2$residuals, data = Data500)
+panel.smooth(model2$fitted.values, model2$residuals)
+abline(h=0,lty=3)
+```
+
+##Model 3
+This model seems fine enough.  I would be happy to find it in a natural dataset. 
+
+##Model 4
+This model seems nice as well.  I am a little concerned with the qqnorm plot, however there are so may data points and the don't seem to be any extreme outliers which have a large cook score, so I think it should be fine.  
+```{r}
+qqnorm(model3$residuals)
+qqline(model3$residuals)
+```
+
+##Model 5
+This model seems nice as well.  I am a little concerned with the qqnorm plot, however there are so may data points and the don't seem to be any extreme outliers which have a large cook score, so I think it should be fine.  
+```{r}
+qqnorm(model5$residuals)
+qqline(model5$residuals)
+```
+
+
+
+**6.2.** Compare model4 and model5 with the more general model6 using anova. Which model would you pick? Explain your answer. 
+#Answer
+```{r}
+model6 = lm(Wage ~  (cAge + cExper + Sex + Occ)^2, data = Data500)
+anova(model4,model6)
+```
+
+Since the F statistic is low with this anova and the p value is larger than 0.35,there is no statistically significant difference between the two models, and thus I would pick the simpler model, model4, since model4 contains less interactions and quadratic terms. 
+```{r}
+anova(model5,model6)
+```
+Since the F statistic here is also low (0.4438) and the p value is larger than 0.75, there is no statistically significant difference between the two models, and thus, I would pick the simpler model, model5, since model5 contains less interactions and quadratic terms. 
+
+Between them all, I would pick model 4 since it is the simplest and doesn't have as many interactions, and thus it will be easier to interpret when drawling conclusions from it.
+
+
+**6.3.** For model4, provide an assessment of outliers and influential cases. 
+#Answer
+```{r}
+par(mfrow = c(2,2))
+plot(model4)
+```
+There doesn't seem to be any extreme outliers in terms of residual values vs fitten values, especially since the number of data points is large and thus the few data points which do take large or small values are expected.  
+
+I seem to have a few leverage points and some points which large standardized residual values.  However, none of my points have Cook distances exceed the unexpected values (i.e. they do not pass the 0.5 or 0.1 dotted line which the graph provides. In fact, they are so far away that I cannot observe them), so the values look acceptable.  I don't seem to have any outliers which I expect will change my regression conclusions.  
+
+**6.4.** For model4, provide and interpret an estimate of how much the conditional mean of salary varies between males and females when their occupation is Office Clerk and when their occupation is Waiter. Provide your interpretation considering the context of the problem. In addition, provide 95% confidence intervals for the estimates.  
+
+```{r}
+#CI = matrix(0,nrow=1,ncol=length(model4$coefficients))
+#colnames(CI) = names(model4$coefficients)
+#CI[1,"SexMale"] = 1
+#CI[1,"SexMale:OccOffClerk"] = 1*1
+#CIvalue=confint(glht(model4,linfct=CI))
+#CIvalue$confint[1,]
+```
+NOTE: R markdown was being weird, so I just commented out this code above, but it was used to find the numbers I show below:
+
+I predict the mean anual salary of a male office clerk to be \$9059.36 larger than the mean anual salary of a female office clerk with the same experience and age, and am 95% confident that the mean male office clerk with equal experience and age makes between \$8352.251 and \$9766.399 more than the female.
+
+```{r}
+#CI = matrix(0,nrow=1,ncol=length(model4$coefficients))
+#colnames(CI) = names(model4$coefficients)
+#CI[1,"SexMale"] = 1
+#CI[1,"SexMale:OccWaiter"] = 1*1
+#CIvalue=confint(glht(model4,linfct=CI))
+#CIvalue$confint[1,]
+```
+NOTE: R markdown was being weird, so I just commented out this code above, but it was used to find the numbers I show below:
+
+I predict the mean anual salary of a male waiter to be \$752.7104 less than a female waiter (or waitress)
+with an equal amount of experience and age, and am 95% confident that the male makes between \$1727.3648 less and $221.9441 more than the female. 
+
+```
+
+
+
+

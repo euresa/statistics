@@ -1,0 +1,325 @@
+---
+title: 'STA 210: Assignment 3'
+author: "Samuel Eure"
+date: "2/16/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1
+
+```{r}
+library(Sleuth3)
+# dataset for Problem 1
+# use command ?ex0727 to obtain a description of the data
+birds = ex0727
+head(birds)
+```
+
+Part A)
+
+Let be start by taking a look at the data.  Here is a scatter plot:
+
+```{r}
+plot(birds$Tcell, birds$Mass, xlab = "T-Cell Measurements", ylab = "Average Mass of Stones (grams)",
+     main = "T-Cell vs. Stone Mass for Birds", col = "darkblue")
+```
+
+It looks like there may be a trend. Let me run a regression test on the data:
+
+```{r}
+
+birdModel = lm(Mass~Tcell, data = birds)
+summary(birdModel)
+
+```
+
+The p values for my intercept and slope are < 0.007, which is statistically significant at the 0.007 level.  Thus, I can reject my null hypotheses for the slope = 0 and intercept = 0.  
+From my lm test, it appears that the line of best fit is (Mean Stone Mass) = 3.911 + (10.165)*(Tcell measurement).  Let me plot the data and see this line:
+
+```{r}
+plot(birds$Tcell, birds$Mass, xlab = "T-Cell Measurements", ylab = "Average Mass of Stones (grams)",
+     main = "T-Cell vs. Stone Mass for Birds", col = 'navy')
+abline(birdModel$coefficients, col = 'darkred')
+```
+
+Yes, that lines look about right.  Let me check out a 95% confidence interval of my paramaters:
+
+```{r}
+confint(birdModel)
+```
+
+My confidence interval for the slope reveals that I am 95% confident that there is a positive relationship between Tcell counts and average stone mass.  Thus, I am 95% confident that a 0.1 increase in Tcell measurment will lead to a .3267g to 1.706g increase in average stone mass between the range of [0.1,0.5].  
+
+PartB)
+
+Let me now check out some residual plots:
+
+```{r}
+par(mfrow=c(2,2))
+
+plot(birds$Tcell, birds$Mass, xlab = "T-Cell Measurements", ylab = "Average Mass of Stones (grams)",
+     main = "A) T-Cell vs. Stone Mass for Birds", col = "darkblue")
+abline(birdModel$coefficients, col = 'darkred')
+
+plot(birds$Tcell, birdModel$residuals, xlab = "T Cell Measurments", ylab = "Residuals", 
+     main = "B) Residuals vs Tcells", col = 'navy')
+abline(h = 0, lty = 2, col = 'red')
+
+plot(birdModel$fitted.values, birdModel$residuals, xlab = "Fitted Values", ylab = "Residuals", 
+     main = "C) Fitted Values vs. Residuals", col = 'navy')
+abline(h = 0, lty = 2, col = 'red')
+
+qqnorm(birdModel$residuals, col = 'navy')
+qqline(birdModel$residuals, col = 'red')
+
+
+```
+
+```{r}
+hist(birdModel$residuals, breaks = 10, col = 'lightblue')
+```
+
+My plot B of Residuals vs Tcell measurements shows that the residuals are relatively randomly distributed around zero for all measurements of Tcell readings, bur perhaps there some problems around 0.2 and 0.25 since most the points around these areas are above and below the abline, respectively.  My Fitted Values vs Residuals plot shows about the same thing as my plot B.  My QQ plot shows that the error measurements (residuals) are pretty normally distributed (and my histrogram confirms this, depsite a few missing data points) which is an assumption of the linear regression.  From these plots, I think the regression assumptions are satisfied, however it would be better to collect more data since we only have 21 data points, which is quite small.  
+
+Part C.
+
+i)  Let me makes some preditions based on my regression data:
+```{r}
+newPoints = c(0.25, 0.41)
+newPoints= data.frame(Tcell=newPoints)
+
+P = c(0.32)
+newPoint = data.frame(Tcell = P)
+birdConf = predict.lm(birdModel, newPoint, interval = 'confidence')
+birdPredict = predict.lm(birdModel, newPoints, interval = 'prediction')
+
+birdPredict
+
+```
+
+So I would expect a bird with a Tcell count of 0.25 to carry stones with masses between [3.36g, 9.55g] and a different bird with a Tcell count of 0.41 to carry stones with masses between [4.98g, 11.19g]
+
+ii)  For a Tcell measurement = 0.32, I would expect:
+```{r}
+birdConf
+```
+
+An average mass of 7.164 grams, with with a 95% confidence interval of [6.512g, 7.816g] 
+
+## Problem 2
+
+
+```{r}
+library(Sleuth3)
+# dataset for Problem 2
+# use command ?ex0730 to obtain a description of the data
+polls = ex0730
+polls
+```
+
+Let me start by performing the regression:
+
+```{r}
+pollModel = lm( Refusal~Age, data = polls)
+summary(pollModel)
+```
+
+The null hypothesis that the slope of my regression line is zero can be rejected at the 0.0002 leve, which is statistically significant, and the null hypothesis that my y intercept is zero can be rejected at the 0.000001 level, which is very statistically significant.  Thus, given this text, the line of regression through the 6 data points is (Refusal Rate) = 0.4444 - 0.002347*(Age in years). Thus, I expect on average there to be ~0.00234% less of an average refusal rate for each 1 year increase of age, between ages 22 and 65, however from my 95% confidence interval of the slope...
+
+```{r}
+confint(pollModel)
+```
+
+I expect there to be between a [ 0.0028 % , 0.0012 % ] decrease in average refusal rate for each 1 year increase of age between ages 22 and 65.  
+Let me confirm that the assumptions of my regression test have been met:
+
+```{r}
+par(mfrow=c(2,2))
+
+plot(polls$Age, polls$Refusal, ylab = "Poll Refusal Rate", xlab = "Age of Voter (years)",
+     main = "Poll Refusal Rate v.s. Age", col = 'navy')
+abline(pollModel$coefficients, col = 'red')
+
+plot(polls$Age, pollModel$residuals, xlab = "Age (years)", ylab = "Residuals", 
+     main = "Residuals vs Age", col = 'navy')
+abline(h = 0, lty = 2, col = 'red')
+
+plot(pollModel$fitted.values, pollModel$residuals, xlab = "Fitted Values", ylab = "Residuals", 
+     main = "Fitted Values vs. Residuals", col = 'navy')
+abline(h = 0, lty = 2, col = 'red')
+
+qqnorm(pollModel$residuals, col = 'navy')
+qqline(pollModel$residuals, col = 'red')
+```
+
+Although it may not appear that the residual values are small and the QQ values are close to the qqline, once one notices the y axis of these plots, she realizes that these variations in residual values and differences form the qqline are incredibly small (all less than 0.01, or 1% for the Refusal rates).   Additionally, my Regression line in the top left for the Poll Refusal Rate vs Age plot looks beautiful.
+However, given the my sample size, any conclusions I draw from this data are quite weak.  More data collection is needed.  
+
+
+
+## Problem 3 
+
+How much do we expect the salary to change if the IQ score increases in 15 points?
+
+```{r}
+library(Sleuth3)
+# dataset for Problem 3
+# use command ?ex0828 to obtain a description of the data
+payingjobs = ex0828
+colnames(payingjobs)[2]="IQ"
+head(payingjobs)
+```
+
+Let me look at the data to begin:
+
+```{r}
+
+plot(payingjobs$IQ, (payingjobs$Income2005), xlab = "IQ", ylab = "Income in Dollars",
+     main = "Average Income vs IQ" )
+
+```
+
+Well, this chart is quite uninformative do to the outliers in income.  Let me look at a log graph:
+
+```{r}
+plot(payingjobs$IQ, log(payingjobs$Income2005), xlab = "IQ", ylab = "Log(Income in Dollars)",
+     main = "Log(Average Income) vs IQ" )
+```
+
+This looks much more appropriate.  I shall use the log of the income when perfomring my regression.  
+
+```{r}
+payModel = lm(log(Income2005)~IQ, data = payingjobs)
+summary(payModel)
+```
+
+For the p-values acquired, there is overwelming evidence (p << 0.0005) that both of my null hypotheses are false, (i.e. that the slope an intercept of my regression line are zero) . Thus, if the assumptions of the regression test are verified, I accept the alternative hypthesis and expect IQ and Log(Income in dollars) to follow an average linear trend. 
+
+Let me test these assumptions
+
+```{r}
+par(mfrow=c(2,2))
+
+plot(payingjobs$IQ, log(payingjobs$Income2005), ylab = "Log(Income in Dollars)", xlab = "IQ score",
+     main = "Income v.s. IQ", col = 'navy')
+abline(payModel$coefficients, col = 'red')
+
+plot(payingjobs$IQ, payModel$residuals, xlab = "IQ Score", ylab = "Residuals", 
+     main = "Residuals vs IQ", col = 'navy')
+abline(h = 0, lty = 2, col = 'red')
+
+plot(payModel$fitted.values, payModel$residuals, xlab = "Fitted Values", ylab = "Residuals", 
+     main = "Fitted Values vs. Residuals", col = 'navy')
+abline(h = 0, lty = 2, col = 'red')
+
+qqnorm(payModel$residuals, col = 'navy')
+qqline(payModel$residuals, col = 'red')
+```
+
+Well, from my Residuals vs IQ plot the residuals seem to be normally spread for all IQ scores, however, it seems that my QQnorm plot for the residuals is not fully normal, however, there are so many data points that this may not have a great impact.  Regardless, I am fairly certain that a plot without a log transformation would be much less reliable due to the inidial plotting of the data.  Let me plot a histogram of the residuals so assess the normality.  
+
+```{r}
+hist(payModel$residuals, breaks = 20, xlab = "residual values", main = "Residual Histogram", 
+     col = 'lightblue')
+```
+
+It can be seen that the residual values are centered around zero and that the histogram is pretty normal.  I think it is okay to use a regression test of of the log(Income) vs IQ, and I trust the results.  
+
+Now let me provide a confidence interval for the line coefficients from my regression:
+```{r}
+confint(payModel)
+```
+
+Thus, I expect the relationship between log(Income) and IQ to be:
+      
+        log(Income) =  9.86 + 0.010458*IQ
+        
+and I am 95% confident that the intercept is between [9.79, 9.95] and the slope is between [0.009165, 0.01175].  Thus, if we increase IQ by 15 points, I expect there to be a:
+```{r}
+Old = exp(9.86 + 0.010458*0)
+Increase = exp(9.86 + 0.010458*(15))
+
+Change = Increase/Old
+Change*100 - 100
+```
+
+       Around  17% increase in income.  
+
+
+## Problem 4 
+
+```{r}
+library(Sleuth3)
+# dataset for Problem 4
+# use command ?ex0823 to obtain a description of the data
+wine = ex0823
+head(wine)
+```
+
+Let me begin by looking at the data:
+
+```{r}
+par(mfrow=c(2,2))
+
+plot(wine$Wine,wine$Mortality, xlab = "Wine Cons. In Liter/person", 
+     ylab = "Heart Disease Deaths/1000", main = "Wine Cons. vs. Mortality Rates", col = "navy")
+
+plot(log(wine$Wine),log(wine$Mortality), xlab = "Log(Wine Cons, In Liter/person)", 
+     ylab = "Log(Heart Disease Deaths/1000)", main = "Log(Wine Cons.) vs. Log(Mortality Rates)",
+     col = "navy")
+
+plot((wine$Wine),log(wine$Mortality), xlab = "(Wine Cons. In Liter/person)", 
+     ylab = "Log(Heart Disease Deaths/1000)", main = "(Wine Cons.) vs.Log(Mortality Rates)", col = "navy")
+
+plot(log(wine$Wine),(wine$Mortality), xlab = "log(Wine Cons. In Liter/person)", 
+     ylab = "(Heart Disease Deaths/1000)", main = "Log(Wine Cons.) vs. Mortality", col = "navy")
+```
+
+Well, I can see that the data is skewed right.  I think the double log plot looks the best.  I shall go with this for my analysis.  
+
+Let me run my regression:
+
+```{r}
+wineModel = lm(log(Mortality)~log(Wine), data = wine)
+summary(wineModel)
+```
+
+My p values allow me to reject my null hypothesis at since both are <<0.005.  Thus, I accept the hypothesis that there is a nontrivial, linear relationship between log(wine consumption in liters) and log(Heart related deaths/1000).  Let me look at the confidence interval for my coefficients:
+
+```{r}
+confint(wineModel)
+```
+
+Thus, I expect this relationship to be a linear with a slope between [-0.468, -0.2434] and an intercept between [2.287, 2.825].  What this tells me (if the assumptions of the regression test are met) is that an increase of one in log(average liters of wine consumption) predicts, on average, a DECREASE of 0.3555 in the log(Heart related Deaths/1000). This is a complex relationship and is difficult to describe mathematically, but, as wine consumption increases by a factor of X, death rates per 1000 will decrease by a factor of X^(0.3555). Let me now test the assumptions of the test:
+
+```{r}
+par(mfrow=c(2,2))
+
+plot(log(wine$Wine), log(wine$Mortality), ylab = "Log(Dealths/1000)", xlab = "Wine Cons. in liters",
+     main = "Log(Mortality) v.s. Log(Wine Cons.)", col = 'navy')
+abline(wineModel$coefficients, col = 'red')
+
+plot(log(wine$Wine), wineModel$residuals, xlab = "Log(Wine Cons.)", ylab = "Residuals", 
+     main = "Residuals vs Log(Wine Cons.)", col = 'navy')
+abline(h = 0, lty = 2, col = 'red')
+
+plot(wineModel$fitted.values, wineModel$residuals, xlab = "Fitted Values", ylab = "Residuals", 
+     main = "Fitted Values vs. Residuals", col = 'navy')
+abline(h = 0, lty = 2, col = 'red')
+
+qqnorm(wineModel$residuals, col = 'navy')
+qqline(wineModel$residuals, col = 'red')
+```
+
+It appears that my line of best fit looks quite appropriately paramaterized, however since there is a dearth of well spread data points due to the outliers in my sample, it appears that the residual plots are not symmetrical -- however they are centered around the zero lines in red! The QQ plot supports the assumption that residuals are normally distributed. I interpret this data as satisfying the conditions of the regression and support the notion that there is a linear relationship between log(wine consumption in liters) and log(Heart related deaths/1000).  It would be wise to collect more data from other countries and repeat this experiment, as well as collect death of women as opposed to only men.  Given this data, we may only draw conclusions about wine consumption of men and deaths per 1000 men, not women.  
+
+
+
+
+
+
+

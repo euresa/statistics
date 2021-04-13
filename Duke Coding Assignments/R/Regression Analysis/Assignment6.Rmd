@@ -1,0 +1,410 @@
+---
+title: 'Stat 210: Regression Analysis. Assignment 6.'
+author: 'Samuel Eure'
+date: "4/7/2018"
+output: pdf_document
+fontsize: 15pt
+geometry: margin=0.0in
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(multcomp)
+load("Data500.RData")
+head(Data500)
+```
+
+# Problem 1
+Consider model1
+```{r}
+model1 = lm(Wage ~  Age + Sex + log(Exper) + Occ + log(Exper)*Occ, data = Data500)
+```
+**1.1.** Based on the population model, compute
+$$
+\mu\{Wage|Age+1,Exper,Sex,Occ\} - \mu\{Wage|Age,Exper,Sex,Occ\} = \beta_1
+$$
+<br /><br /><br />
+and report the final result. Then, based on `model1`, provide an estimate of this difference. Finally, considering the context of the problem, provide an interpretation of the obtained estimate. 
+
+#Answer
+```{r}
+beta = model1$coefficients
+beta['Age']
+confint(model1)['Age',]
+```
+Based on model1, since age does not interact with other variables, and there are no transformations on age, if age is increased by one year with all other factors held constant, I predict mean annual salary to increase by \$312.27 and am 95% confident that the mean annual salary will increase by between \$37.47 and \$587.07.  As age increases, average annual salary is predicted to increase. This is intuatively pleasing, since we would expect workers to become more competent and proficient with age, and thus earn more.  
+
+**1.2.** Based on the population model, compute
+$$
+\mu\{Wage|Age,3Exper,Sex,Occ\} - \mu\{Wage|Age,Exper,Sex,Occ\} = [(\beta_3+\beta_6)\times OfCl+(\beta_3+\beta_7)\times Wait]\times log(3)
+$$
+<br /><br /><br />
+and report the final result. **Hint:** You have to consider the fact that $log(3Exper)=log(3)+log(Exper)$.
+
+#Answer
+First of all, I don't need any hints.  
+
+I'll have to condition my answers based on occupation due to it's interaction with log(Exper).  
+
+##Cashier
+For cashiers, if all else is held constant and experience increases by a factor of 3,  I expect the mean annual salary to increase by
+```{r}
+beta['log(Exper)']*log(3)
+```
+\$397.62 
+
+##Waiter
+For waiters, if all else is held constant and experience increases by a factor of 3,  I expect the mean annual salary to increase by
+```{r}
+(beta['log(Exper)']+beta['log(Exper):OccWaiter'])*log(3)
+```
+\$270.042 
+
+##Office Clerk
+For office clerks, if all else is held constant and experience increases by a factor of 3,  I expect the mean annual salary to increase by
+```{r}
+(beta['log(Exper)']+beta['log(Exper):OccOffClerk'])*log(3)
+```
+\$3590.45
+
+
+
+**1.3.** Based on the population model, compute
+$$
+\mu\{Wage|Age,3Exper,Sex,Occ=Wait\} - \mu\{Wage|Age,Exper,Sex,Occ=Wait\} = log(3)\times(\beta_3 + \beta_7)
+$$
+<br /><br /><br /><br />
+
+and report the final result. Then, based on `model1`, provide an estimate of this difference. Finally, considering the context of the problem, provide an interpretation of the obtained estimate.
+
+#Answer
+Based on model 1, for waiters, if all else is held constant and experience increases by a factor of 3,  I expect the mean annual salary to increase by
+```{r}
+(beta['log(Exper)']+beta['log(Exper):OccWaiter'])*log(3)
+```
+\$270.04, and I am 95% confident that the mean annual income will change by between 
+```{r}
+Test = matrix(0, nrow = 1,ncol = length(model1$coefficients))
+colnames(Test) = names(model1$coefficients)
+model1$coefficients
+Test[1,'log(Exper):OccWaiter'] = log(3)
+Test[1,'log(Exper)'] = log(3)
+TestValues = confint(glht(model1, linfct=Test))
+TestValues$confint
+```
+-\$2782.20 and \$3322.29 due to the invariance property of confidence intervals. Thus, there does not seem to be a siginificant relationship between change in experience of a waiter and mean annual salary. Perhaps some waiters get better at their jobs and are able to serve tables better, and thus they earn more money, while other waiters earned the majority of their money through tips at restaraunts such as Hooters, and perhaps recieved less tips due to unclear reasons once they aged (obtaining more experience in the process), or the waiter worked at a place when they were in high school or college and recieved lots of tips from older couples who looked kindly upon the working student or generation of youth before them.  
+
+
+**1.4.** Based on the population model, compute
+$$
+\mu\{Wage|Age,Exper=10,Sex,Occ=Cash\} - \mu\{Wage|Age,Exper=10,Sex,Occ=Wait\} = -\beta_5 - \beta_7\times(log(10))
+$$
+<br /><br /><br />
+and report the final result. Then, based on `model1`, provide an estimate and confidence interval for this difference. Finally, considering the context of the problem, provide an interpretation of the obtained confidence interval.
+
+#Answer
+```{r}
+Test = matrix(0, nrow = 1,ncol = length(model1$coefficients))
+colnames(Test) = names(model1$coefficients)
+model1$coefficients
+Test[1,'OccWaiter']=-1
+Test[1,'log(Exper):OccWaiter'] = -log(10)
+TestValues = confint(glht(model1, linfct=Test))
+TestValues$confint
+```
+Based on model 1, I estimate the difference to be 1513.956 and am 95% confident that the difference will be between 144.759 and 3172.672.  Thus, if all other factors are held constant, I estimate the mean annual salary of a cashier with 10 years of experience to be \$1513.956 larger than that of a waiter with 10 years of experience, and am 95% confident that the mean difference will be between -\$144.759 and \$3172.672.
+
+
+# Problem 2
+Consider model2
+```{r}
+model2 = lm(Wage ~   Age + Sex + Exper + Occ + Exper*Occ + Exper*Sex, data = Data500)
+```
+
+**2.1.** Using the same notation used in Problem1, write down the population model associated with `model 2.` That is, 
+$$
+\mu\{Wage|Age,Exper,Sex,Occ\}  =\beta_0 + \beta_1 Age + \beta_2 Male + \beta_3 Exper + \beta_4 OfClerk + \beta_5 Wait
+$$
+$$
++\beta_6 (Exper \times OfClerk) + \beta_7(Exper \times Wait) + \beta_8(Exper \times Male)
+$$
+<br /><br /><br />
+
+#Answer
+\begin{eqnarray*}
+\mu\{Wage|Age,Exper,Sex,Occ\} & = & \beta_0 + \beta_1 Age + \beta_2 Male + \beta_3 Exper + \beta_4 OfClerk + \beta_5 Wait +\\
+& & \beta_6 (Exper \times OfClerk) + \beta_7(Exper \times Wait) + \beta_8(Exper \times Male).
+\end{eqnarray*}
+
+
+**2.2.** Assume that we want to estimate how much the conditional mean of salary changes when male waiters' experience increases by ten months. State the problem in terms of a difference of conditional means. Then, using the population model provided in **2.1**, compute such difference (the answer has to be stated in terms of the regression coefficients $\beta_0,\beta_1,...$),
+<br /><br /><br /><br /><br /><br /><br /><br /><br />
+
+#Answer
+$$
+\mu\{Wage|Age,Exper+10,Sex=Male,Occ=Wait\} - \mu\{Wage|Age,Exper,Sex=Male,Occ=Wait\} = (\beta_3+\beta_7+\beta_8)\times 10 
+$$
+<br /><br /><br />
+
+**2.3.** Based on `model2`, provide an estimate and confidence interval for the difference stated in **2.2**. Considering the context of the problem, provide an interpretation of the obtained confidence interval.
+
+#Answer
+```{r}
+Test = matrix(0, nrow = 1,ncol = length(model2$coefficients))
+colnames(Test) = names(model2$coefficients)
+model2$coefficients
+Test[1,'Exper:OccWaiter'] = 10
+Test[1,'SexMale:Exper'] = 10
+Test[1, "Exper"] = 10
+TestValues = confint(glht(model2, linfct=Test))
+TestValues$confint
+```
+Based on this model, I estimate that the mean annual salary of a male waiter will increase by \$553.98 is all else is kept constant if he gains 10 more years of experience as a waiter, and I am 95% confident that the mean pay will change by some number between \$92.46 less and \$1200.41 more.  
+
+
+**2.4.** Assume that now we want to know how much the conditional mean of salary varies between Waiter and Office Clerk when the employee has 10 years of experience. State the problem in terms of a difference of conditional means. Then, using the population model provided in **2.1**, compute such difference (the answer has to be stated in terms of the regression coefficients $\beta_0,\beta_1,...$),
+
+#Answer
+$$
+\mu\{Wage|Age,Exper=10,Sex,Occ=Wait\} - \mu\{Wage|Age,Exper=10,Sex,Occ=OfCl\} = 10\times(\beta_7 - \beta_6) +\beta_5 -\beta_4
+$$
+<br /><br />
+
+**2.5.** Based on `model2`, provide an estimate and confidence interval for the difference stated in **2.4**. Considering the context of the problem, provide an interpretation of the obtained confidence interval.
+
+#Answer
+
+```{r}
+Test = matrix(0, nrow = 1,ncol = length(model2$coefficients))
+colnames(Test) = names(model2$coefficients)
+model2$coefficients
+Test[1, 'OccOffClerk'] = -1
+Test[1,'Exper:OccOffClerk'] = -10
+
+Test[1, 'OccWaiter'] = 1
+Test[1,'Exper:OccWaiter'] = 10
+
+TestValues = confint(glht(model2, linfct=Test))
+TestValues$confint
+```
+
+Given model2, I expect the mean annual salary of waiters with ten years of experience to be \$4,644.90 more than that of the mean salary of office clerks with ten years of experience if all else is held equal, and I am 95% confident that these waiters will have an mean annual salary what is between \$3,283.75 more and \$6,006.05 more.  
+
+
+# Problem 3
+
+```{r}
+library(Sleuth3)
+bumpus = ex2016
+```
+**3.1** Fit a logistic model where `Status` is the response variable and `AG`, `TL`, and `AE` are the predictors. Considering the context of the problem, provide an interpretation of the estimates associated with the predictors `AG` and `TL`.
+
+#Answer
+Let me check to make sure my data is in the correct form:
+
+```{r}
+bumpus$AG =  as.factor(bumpus$AG)
+bumpus$TL = as.numeric(bumpus$TL)
+bumpus$AE = as.numeric(bumpus$AE)
+bumpus$Status =ifelse(bumpus$Status == 'Survived',1,0)
+str(bumpus)
+```
+Perfect.  Now I'll create my model3:
+```{r}
+model3 = glm(Status ~ AG+TL+AE, family = binomial, data = bumpus)
+exp(model3$coefficients)
+```
+
+
+Given this model, AG is a categorial variable with two categories: 
+      1 --> 'adult'
+      2 --> 'juvenile'
+which refer to the age of the birds which Bumpus collected.  When predicting off of this variable, I will be predicint survival of this particular winter storm of 1898 in England status off of the 'type' (age) of sparrows.  Given this interpretation, the coefficient of $$\beta_{AG} = 0.2021 ==> exp(0.2021) = 1.22 $$
+==> the average odds of survival of this particular winter storm of 1898 in England  of juvenile sparrows is 22% greater than the average odds of survival of adult sparrows.
+
+TL refers to the length from the tip of the beak to the tip of the tail (in mm) of the sparrows , so I am predicting survival status based on the length of the sparrows.  Thus,given the coefficient of $$\beta_{TL} = -0.6237 ==> exp(-0.6237) =  0.54 $$
+==> the average odds of survival of this particular winter storm of 1898 in England  of any particular sparrow are 46% smaller than the odds of survival of sparrows which are 1 mm longer from the tip of the beak to the tip of the tail.  
+
+AE is the length from tip to tip of a sparrows' extended wings, in mm.  So, I will be predicing survival status based on wingspan. 
+Thus,given the coefficient of $$\beta_{AE} = 0.2765 ==> exp(0.2765) = 1.39  $$
+==> the average odds of survival of this particular winter storm of 1898 in England  of any particular sparrows are 39% larger than the odds of survival of sparrows which have an alar extent (a wingspan) 1 mm shorter.
+
+**3.2** Using the model fitted in **3.1** and considering the context of the problem, provide and interpret confidence intervals for the coefficients associated with the predictors `AG` and `AE`.
+
+#Answer
+```{r}
+exp(confint(model3))[c(2,4),]
+```
+I am 95% confident that the average odds of survival of this particular winter storm of 1898 in England of juvenile birds are between 41.4% fewer and 374% greater than the average odds of survival of adult sparrows (i.e. the odds ratio of survival for juvanile sparrows to adult birds is between 0.4136115 and 3.739305). 
+
+I am 95% confident that the average odds of survival of this particular winter storm of 1898 in England of a group of sparrows are between 41.4% fewer and 374% greater than the average odds of survival of adult sparrows which hold a wingspan 1 mm shorter (i.e. the odds ratio of survival for sparrows with a wingspan 1 mm longer than another group of sparrows is between 1.1230598 and 1.583256). 
+
+**3.3** Using the model fitted in **3.1**, verify the adequacy of the fitted model by conducting a residual analysis. Also, provide an assessment of the predictive power of this model using the ROC curve.
+
+#Answer
+##Residual Analysis
+```{r}
+library(lattice)
+
+xyplot(model3$residuals~ TL,data = bumpus, main = 'Residuals vs TL',ylab = "Residuals",xlab = 'TL in mm', 
+       panel = function(x, y) {
+         panel.grid(v=2)
+         panel.xyplot(x, y)
+         panel.loess(x, y, span = 1.5, degree = 1, family="symmetric",col=2)
+         panel.abline(h=0,lty=2)
+       })
+
+bwplot(model3$residuals~ AG, data =bumpus,main = 'Residuals vs AG', ylab = "Residuals",xlab = c('adult', 'juvenile'),
+       panel = function(x,y,...) {
+         panel.bwplot(x, y, pch="|",...)
+         panel.abline(h=0,lty=2)
+         panel.points(1:2, tapply(y,x,mean), col="red", ...)
+       })
+
+xyplot(model3$residuals~ AE,data = bumpus,main = 'Residuals vs AE', ylab = "Residuals", xlab = 'AE in mm', 
+       panel = function(x, y) {
+         panel.grid(v=2)
+         panel.xyplot(x, y)
+         panel.loess(x, y, span = 1.5, degree = 1, family="symmetric",col=2)
+         panel.abline(h=0,lty=2)
+       })
+
+plot(model3,which=5,add.smooth = FALSE,id.n=0)
+
+
+```
+I would say all of these residual plots look fantastic for biological data collected in 1898 in terms of the trend they show. The only worries I have are the poential leverage points in the Residuals vs TL plot around [x = ~163, y= ~6]. However, from my plot of cooks distances over normalized residuals over leverage, they seem to be okay.  I don't see anything too weird in the patterns of my residuals, so I believe they are okay.    
+
+##ROC Curve
+```{r}
+library(pROC)
+roc(bumpus$Status, model3$fitted.values, plot =T, print.thres = T, legacy.axes =T)
+```
+This is quite nice, with an area under the curve of 0.8252!!!
+
+Let me create a confusion matrix based on our 0.624 threshold from our roc plot:
+```{r}
+table(bumpus$Status,model3$fitted.values>0.624)
+```
+This isn't bad, since the majority of the predicted values are what the true values are (i.e. the diagonal entries are large compared to the anti-diagonal entries).  For example, I have a true positive rate (sensitivity) of 40/55 = 8/11=(0.72) and a false positive rate of 7/36 = (0.194).  
+
+**3.4** Fit a logistic model where `Status` is the response variable and the rest of variables in the `bumpus` dataset are the predictors. Analyze the data to see whether the probability of survival is associated with physical characteristics of the birds. This would be consistent, according to Bumpus, with the theory of natural selection: those that survived did so because of some superior physical traits. Provide an assessment of Bumpus' claim based on your analyses. **Note:** you do not have to provide a residual analysis in this problem.
+#Answer
+```{r}
+model4 = glm(Status~AG+TL+AE +WT+BH+HL+FL+TT+SK+KL,family = binomial, data = bumpus)
+summary(model4)
+```
+Based on model4, it appears that there is statistically significant evidence that the coefficients for TL and WT (weight in grams) are nonzero (p values 0.000103 and 0.009333, respectfully). Thus, given this data, the odds of survival are different between birds of different weight ant length.  However, this data suggests that there is insignificant evidence that the other physical characteristics of the birds influenced their odds of survival.  Given the number of predictors I am using with this model, it is not surprising that I have at least 1 predictor which has a statistically significant nonzero coefficient, and in a way I feel as though I am data fishing.  This being said, although the theory of natural selection can be supported with this data when examining TL and WT, it is not supported when looking at the other physical characteristics, and a creationist (or critic of natural selection) could have easliy pointed this out when bumpus presented his data. Besides these things, the data was collected in a nonrandomized way and an is observational, so these findings shouldn't be presented to support a theory which applies to all species.   
+
+# Problem 4
+
+```{r}
+library(Sleuth3)
+esteemdata = ex1223[,c("Esteem1","Income2005","AFQT","Educ","Gender")]
+esteemdata$Esteem01 = ifelse(esteemdata$Esteem1==1,1,0)
+esteemdata$cAFQT = esteemdata$AFQT - mean(esteemdata$AFQT)
+esteemdata$binEduc = cut(esteemdata$Educ,breaks = c(6,12,16,20))
+```
+
+```{r}
+regesteem = glm(Esteem01~log(Income2005)+cAFQT+binEduc+Gender+cAFQT*binEduc+binEduc*Gender, family = binomial, data=esteemdata)
+```
+**4.1.** Considering the context of the problem, provide an interpretation of the intercept even if it is nonsensical. 
+
+#First, something needs to be corrected
+Firstly, it should be noted that this model was conducted in an incorrect fashion.  When 'esteemdata$binEduc = cut(esteemdata$Educ,breaks = c(6,12,16,20))' was used, this results in all values which have 6 as an education level to be dropped, since these intervals are open on the lower bound and closed on the upper bound.  As a result, one may observe that the number of fitted falues from the model and the number of predicted values are not equal, which will create problems later on in the model.
+```{r}
+length(regesteem$fitted.values)
+length(esteemdata$Esteem01)
+```
+Thus, the model should be re-run as such:
+```{r}
+min(esteemdata$Educ)
+esteemdata$binEduc = cut(esteemdata$Educ,breaks = c(5,12,16,20))
+regesteem = glm(Esteem01~log(Income2005)+cAFQT+binEduc+Gender+cAFQT*binEduc+binEduc*Gender, family = binomial, data=esteemdata)
+beta = regesteem$coefficients
+length(regesteem$fitted.values)
+length(esteemdata$Esteem01)
+```
+Since the minimum years of education are 6, creating the lower bin at 5 reseults in no change in our bins, however each bin now acutally includes a unique data point.  
+
+Now that this has been corrected, the the test is sound.  
+
+#Answer
+```{r}
+beta['(Intercept)']
+exp(beta['(Intercept)'])
+1/0.270034 
+```
+The intercept in this problem reports the log of the odds of having positive self-esteem as defined by these researchers for females who have a mean annual salary of \$1 (note: log(1) = 0), who also have an intellegence score equal to 54.44 (the mean intellegence of the population), and who have recieved less than or equal to 12 years of formal education (presumably a high school degree or less). Given this data, these odds are exp(-1.309208) = 0.270034, so the odds these women do not have positive self-esteem compared to having positive are 3.703 to 1.   
+
+**4.2.** Considering the context of the problem, provide an interpretation of the coefficient associated with `log(Income2005)` if the income increases by 50%. 
+
+#Answer
+Income increasing by 50% is the same as multiplying income by 1.5. Thus, if income increases by 50%, I would expect the odds of having positive self-esteem as defined by these reserachers to increase by $$1.5^\beta$$, where $\beta$ is the coefficient of `log(Income2005)`. Thus, I expect the odds to increase by a factor of:
+```{r}
+1.5^beta['log(Income2005)']
+```
+1.0674, which is about by 6.74\%.  
+
+**4.3.** Considering the context of the problem, provide and interpret an estimate of how much the conditional odds of having positive self-esteem change when the respondents' AFQT increases by 1 unit. 
+
+#Answer
+If AFQT is increased by one unit, I expect the conditional odds of having positive self-esteem to change by a factor of:
+```{r}
+exp(beta['cAFQT']+beta['cAFQT:binEduc(16,20]'])
+```
+1.001945 , which is an increase of about .1945\%, if all other factors are held constant.  This is not surprising since the cAFQT variable has a range of about 100 units, and thus on the total scale, one point isn't a very sigificant change.  
+
+**4.4.** Considering the context of the problem, provide and interpret a confidence interval of how much the conditional odds of having positive self-esteem vary between respondents who have 6 to 12 years of education and respondents who have 12 to 16 years of education. 
+
+#Answer
+```{r}
+library(multcomp)
+CI = matrix(0, nrow=1, ncol = length(regesteem$coefficients))
+colnames(CI) = names(regesteem$coefficients)
+CI[1,"binEduc(12,16]"]= 1
+CI[1,"binEduc(12,16]:Gendermale"]= 1
+CIValue = confint(glht(regesteem, linfct = CI), calpha = univariate_calpha())
+exp(CIValue$confint[,])
+```
+
+Given this model, if all other factors are held equal, for  I expect the odds of having positive self-esteem to be 1.4 times greater (about 40% higher) and I am 95% confident that the odds of having positive self-esteem will increase by a factor between 1.079 and 1.82 (between about 7.9% and 82%) if all other factors are held constant.  
+
+**4.5.** Provide an assessment of the predictive power of `regesteem` model using the ROC curve. Which value would you use as a threshold to determine, based on the predictive probability, whether the predicted response variable should be set at zero or one? 
+#Answer
+```{r}
+length(esteemdata$Esteem01)
+length(regesteem$fitted.values)
+roc(esteemdata$Esteem01 ,regesteem$fitted.values, plot =T, print.thres = T, legacy.axes =T, main = 'ROC curve')
+```
+Based on this roc plot, I would use the 0.580 value as my thresholding value.  Given this, I could create a confusion matrix as follows:
+```{r}
+table(esteemdata$Esteem01,regesteem$fitted.values >= 0.580)
+```
+The majority of the predicted values are on the diagonal of this matrix (which corresponds to the actual observed values).  This is pleasing, since it suggest our predicting power is more or less 'better' than 'not better'.  
+
+ **4.6.** Using the same predictors and response variable of model "regesteem", compare a model with only main effects with a model that includes all possible second order interactions. Use the function anova to make these comparisons. Does adding second order interactions make the model better fit the data?
+ 
+```{r}
+modelMain   = glm(Esteem01~(log(Income2005)+cAFQT+Gender+cAFQT+binEduc), family = binomial,data = esteemdata)
+modelSecond = glm(Esteem01~(log(Income2005)+cAFQT+Gender+cAFQT+binEduc)^2, family = binomial,data = esteemdata)
+anova(modelMain, modelSecond, test ="Chisq")
+```
+Given the p value from my anova of 0.1396, there is not statistically significant evidence that there is any difference between these two models.  
+```{r}
+summary(modelMain)
+roc(esteemdata$Esteem01 ,modelMain$fitted.values, plot =T, print.thres = T, legacy.axes =T, main = 'ROC curve')
+```
+```{r}
+0.6243-0.6194
+summary(modelSecond)
+roc(esteemdata$Esteem01 ,modelSecond$fitted.values, plot =T, print.thres = T, legacy.axes =T, main = 'ROC curve')
+```
+ 
+ Given this data, it appears that adding the second order interactoins increases the area under my roc curve by only 0.0049, and it appears that the p values associated with the coefficients of the predictors in model two have lost some significant (i.e. increased) while modelMain shows that almost all of the coefficients in the model of main effects are statistically significant.  Given these facts, I would prefer the modelMain since it is much simpler and easier to interpret.  Even though adding all the secondary interactions increases the area under the roc curve ever so slightly, it doesn't significantly fit the data any better.  
+ 
+ 

@@ -1,0 +1,138 @@
+---
+title: "Stat 210: Regression Analysis. Assigment 1.         \n Samuel Eure"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+This assignment involves review of confidence intervals and hypothesis tests for means. Use this R Markdown template to provide the answers of all problems. All work must be turned in using the pdf document generated with this template. The assignment must be printed and turned in at the beginning of class on the due date. Useful R commands are in the R scripts on Sakai. Additionally, the website https://www.statmethods.net/r-tutorial/index.html includes useful commands for analysis and graphics.
+
+**Due Date**: Friday, February 2.
+
+## Problem 1
+
+*Context of the problem.* The student government at Sunny University wants to know the average number of hours per week that students spend surfing the web. The student government collected a simple random sample of students and asked each of them how many hours per week they typically spend surfing the web.
+
+```{r}
+# Collected data
+Data.hours = c(0.64, 12.00, 0.05, 16.98, 7.21, 26.46, 0.18, 2.13, 0.10,
+               8.23, 4.21, 1.83, 16.34, 13.56, 21.15, 17.91, 40.84, 17.95,
+               0.28, 2.96, 34.58, 10.68, 0.23, 5.52, 18.62, 0.02, 13.63,
+               11.92, 0.15, 24.01)
+```
+
+a. Summarize the distribution of the data using either a histogram or boxplots, and discuss key features related to the location and spread of the values in each group.
+```{r}
+hist(Data.hours, breaks = 10, freq = FALSE, 
+     main = "Sunny University Students Web Surfing Times", 
+     xlab = "hours/week", ylab = "Proportion of Students", col = "lightblue")
+```
+
+Answer:
+It appears that the distribution is bimodal with a large proportion of students surfing the web between five to zero hours a week and another large proportion of students surfing the web (STW) around 15 hours a week.  Additionally, I have provided a box plot of the data.  
+
+```{r}
+boxplot(Data.hours, horizontal = TRUE,  main = "Box Plot of STW Habits", 
+        xlab = "hours/week", col = "lightblue")
+```
+
+Answer:
+It can be seen that the distribution of students is skewed right by the long right wisker, with the median student STW about 9 to 10 hr/wk.
+
+
+b. Provide a 90% confidence interval for the population mean using the R `t.test` function. Provide an interpretation of this interval considering the context of the problem. 
+```{r}
+t.test(Data.hours, conf.level = 0.9)
+```
+
+Answer:
+Above it is shown that the confidence interval for the mean is
+[7.629, 14.396].  This interval was created using a method that captures
+the true mean of the average hours STW a week by Sunny students 90% 
+of the time.  Thus, we are 90% confident that the interval generated captures the true mean. This is not to say that there is a 90% chance that the true mean is within this interval.
+
+c. In general, under which population assumptions does the R `t.test` function provide intervals that 90% of the times contain the population mean? Do you think the dataset `Data.hours` was drawn from a population that satisfies such conditions? Explain your answer.
+
+Answer:
+The t.test assumes that the samples share the same distribution (mean and varience) and that the distribution is normally distributed (since means aren't taken here). Additionally, it assumes that simple random sampling was used and that there are not a lot of extreme outliers in the sample.  Due to the large skew to the right, I don't believe this population is normally distributed. I think that a large number of students study around zero hours a week, and then another group of students study for about 7 to 15 hours per week. Also, the sample size here isn't that large.  Thus, I beleive the confidence interval doesn't capture the true mean 90% of the time.  
+
+d. Assume that an oracle tells you that the dataset `Data.hours` is coming from a population that is not normally distributed. The oracle also tells you that he generated one million random samples of size 30 from this population. He then computed one million confidence intervals using these random samples and the R `t.test` function, setting the confidence level at 90%. The oracle found that 85% of the intervals he calculated contain the true mean. Why do you think the 85% coverage the oracle found does not coincide with the 90% confidence level he used when implementing the R `t.test` function? Using the oracle's information, how would you modify the interpretation of the interval computed in b? 
+
+Answer:
+He may not have been sampling from a single population which shares a distribution.  Additionally, there may be extremem outliers in the populations he is samples from, weakening the t-test. Also, a sample size of 30 isn't that large, and he may need to sample groups of larger sizes depending on how far the population distribution is from normal. Using this information, I would change my interpretation of the t-test to say that the t-test uses a method that generates an interval which 90% (or whatever confidence level you are using) of the time captures the true mean of the population IF the population is normally 
+distributed and randomly sampled from a single population, and may not capture it up to 90% of the time if the population does not abide by the assumptions of the test(i.e. the population is Normal) or of the sample sizes are not large enough to apply the central limit theorem.
+
+## Problem 2
+
+This problem is based on exercise 21, Chapter 2, The Statistical Sleuth third edition.
+
+*Context of the problem*: Bumpus Natural Selection Data. In 1899, biologist Hermon Bumpus presented as evidence of natural selection a comparison of numerical characteristics of moribund house sparrows that were collected after an uncommonly severe winter storm and which had either perished or survived as a result of their injuries. The dataset comprises the length of the humerus (arm bone) in inches for 59 of these sparrows, grouped according to whether they survived or perished.
+
+```{r}
+library(Sleuth3)
+# dataset for Problem 1
+# use command ?ex0221 to obtain a description of the data
+Data.sparrows = ex0221
+head(Data.sparrows)
+
+#A vector of the sparrow humerus lengths's that survived
+survived <- Data.sparrows$Humerus[which(Data.sparrows$Status == "Survived")] 
+#A vector of the sparrow humerus lengths's that perished
+perished <- Data.sparrows$Humerus[which(Data.sparrows$Status == "Perished")]
+
+```
+
+a. Is this a randomized or an observational study? Explain your choice.
+
+Answer:
+This is an obervational study.  The researchers neither randomly selected birds nor assigned them their charactersistics/injuries, they merely observed what the birds had as characteristics after recording if they had survived or perished.
+
+b. In your opinion, what should be the target population in this study?
+
+Answer:
+The target population should be the total population of house sparrows which were in the area the that storm affected.
+
+c. Under your previous population definition, is the collected sample representative of such population? Explain your answer.
+
+Answer:
+No. The researchers only collected birds that were either dead or which they could apparently catch.  The 'fittest' birds may have been able to avoid their own capture and are thus missing from the sample of the population. If these other birds (there were indeed birds these men weren't able to find which were dying as well) had special characteristics (say large humerus length) then the birds sampled are not representative of the total sparrow population from where the storm affected.  Additionally, some birds may have survived the storm and then moved to a different location. Thus, the one's collected can't be thought of as representative.  
+
+d. Summarize the distribution of the data for each of the two groups. Include either histograms or boxplots, and discuss key features related to the location and spread of the values in each group.
+
+To display this data, let's observe their box plots.
+
+```{r}
+
+boxplot(survived, perished,  horizontal = TRUE, names = c("Survived","Perished"), outline = TRUE, 
+        col = c("lightblue", "lightgrey"), 
+        pars = list(boxwex = 0.5, staplewex = 0.5))
+```
+
+Here, it can be seen that there is a great deal of overlap between the two groups of sparrow humerus length; both of the medians fall within the other box plot's IQR and the medians are within 0.005 of each other around 0.735.  Interestingly enought, it appears that the survived population is slightly skewed to the right and the perished population is slightly skewed to the left. Additionally, all outliers are outside the range of both IQRs for the two groups.This data looks relativly normally distributed besides some light skews in the data. Because of this, a t.test may be appropriate for testing statistically significant differences in the population means.  
+
+Here is a t.test for between the perished and the survived groups.
+```{r}
+t.test(perished, survived)
+```
+
+
+
+Clearly, the t.test shows that the difference between the mean humerus size of the two groups is statistically insignificant. Given that the t.test calculated does not show strong evidence that the means of the two groups are different, it is easy to see now why this is the case.  The two groups IQRs overlap quite a bit and their medians are within 0.01 of each other, even though both of their standard deviations are about 0.02. 
+
+e. State the statistical inference methods you use to assess whether there is evidence of natural selection, and justify why you think they are reasonable for these data. Refer to the previous graphics to assess whether it is reasonable to assume normality or whether you will rely on the Central Limit Theorem.
+
+Answer:
+The method used to refute the idea that this dataset supplies evidence of natural selection was the calculation of the t.test for the two populations.  This test was appropriate since both of the populations seemed to be relatively normally distributed. Since the populations looked nearly normal, the CLT was not needed; also, since sample sizes for each sample are 1 (i.e. we did not sample n sparrows, take their average humerus length, and then record this length) the CLT does not apply to this particular problem. The popluations were not collected at random however, so the results cannot be generalized to the sparrow population as a whole.  Moreover, this was an observational study, so humerus size cannot be proven as causal to survival or perishment.  All in all, this is a very weak study -- but what else would we have really expected of 17th century biologists?
+
+f. Include a 95% confidence interval that gives a sense of the difference in the average length of the humerus of sparrows that survived and perished. Also include a p-value for a test of the null hypothesis that average length of the humerus does not differ in the two groups. Explain the statistical results and conclusions using words that a nonexpert would understand.
+
+Answer:
+The same t.test used above is reproduced here for convenience:
+```{r}
+t.test(perished, survived, var.equal =TRUE)
+```
+Displayed above is the 95% confidence interval in the difference in mean humerus length [-0.0214, 0.00128] and a p value of 0.0809.  
+
+An explanation for the nonexpert:
+  "Well, we used a method that gives us two numbers that the difference in the average arm bone lengths should be between, 95% of the time.  Now, that isn't to say that there is a 95% chance that the true difference is within [-0.0214, 0.00128], but our method generates a correct interval 95% of the time, so you may think we are 95% sure we created a correct interval (unless you are a Bayesian, but we don't have to go there).  So, our interval shows that the difference in the arm bone length could be anyware from -0.0214, to 0.00128, which kind of says, either group could have a larger average bone length, or they could be the same.  So this interval supports the notion that there isn't evidence supporting the idea that the means are different. Additionally, we have a 'p-value' of 0.0809, which says that there is about an 8% chance the differences we saw in the two means of the groups was due to chance.  Typically, statisticians need a p value between 0 and 0.05 to give any significance to the differences in the groups, so it's safe to say that we have no evidence to support the idea that there is a difference in the average arm bone sizes between the two groups.  "

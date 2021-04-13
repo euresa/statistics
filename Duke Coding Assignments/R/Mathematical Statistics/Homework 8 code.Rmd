@@ -1,0 +1,23 @@
+---
+title: 'MATH 342D: Homework 8, 9.5.3'
+author: "Samuel Eure"
+date: "4/6/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##9.5.3
+
+I am assuming that the these values collected by the owner of the vehicle are identically and indpendently sampled from a normal distribution of mpg readings of the car.  
+```{r}
+data = c(15.6,18.6,18.3,20.1,21.5,18.4,19.1,20.4,19.0)
+
+test = t.test(x = data,mu = 20, alternative = 'less')
+test
+```
+
+Since my p-value is 0.054 > 0.05, I fail to reject my null hypothesis at the 0.05 level, and thus I do not have enough evidence to claim the automobile has an average mpg of less than 20 mpg.  
+

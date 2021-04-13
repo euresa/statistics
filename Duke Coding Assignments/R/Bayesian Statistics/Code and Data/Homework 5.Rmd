@@ -1,0 +1,276 @@
+---
+title: 'STA 360: Homework 5'
+author: "Samuel Eure"
+date: "10/9/2018"
+output: pdf_document
+---
+
+#Problem 5.2
+
+##Find and plot $P(\theta_A < \theta_B \mid \textbf{y}_A,  \textbf{y}_B)$
+
+###This can be found Monte Carlo by obtianing a lot of iid posterior samples of $(\theta_A \mid \textbf{y}_A)$ and $(\theta_B \mid \textbf{y}_B)$ and taking the average of $(\theta_A \mid \textbf{y}_A) < (\theta_B \mid \textbf{y}_B)$
+
+###In this situation, the varience of $\theta_a$ or $\theta_B$, (and the exam scores) is not known, so we must account for this in our approximation by assigning a prior and posterior belief to $\sigma^2$ (the varience of exam scores). 
+
+###If $\nu_0 = k_0$ is the weight we wish to apply to our prior belief (i.e. the hypotetical previous number of sample), and our prior belief of what $\sigma^2$ should be is equal to $\sigma_0^2$, then 
+
+$$
+\sigma^2 \sim \text{Inv-Gamma}\bigg(\frac{\nu_0}{2},\frac{\nu_0\sigma_0^2}{2} \bigg)
+$$
+
+###Since $\theta_a$ and $\theta_B$ are being modeled as the center of the distribution of exam scores, let the prior for $\theta_i$ be
+
+$$
+\theta_i \mid \sigma^2 \sim \text{Normal}\bigg(\mu_0, \frac{\sigma^2}{k_0}\bigg)
+$$
+
+###Thus, the posterior distributions are 
+
+$$
+\big( \sigma^2 \mid y_1, ..., y_n \big) \sim \text{Inv-Gamma}\bigg( \frac{\nu_0 + n}{2}, \frac{(\nu_0 + n) \sigma_n^2}{2} \bigg)
+$$
+
+###With
+
+$$
+\sigma_n^2 = \frac{1}{\nu_0 + n}\bigg[\nu_0 \sigma_0^2 + (n-1)\sum_{i=1}^{n}\frac{(y_i - \bar y)}{n-1} + \frac{k_0n}{k_0 + n}(\bar y - \mu_0)^2 \bigg]
+$$
+
+###and a posterior of $\theta_i$ of 
+
+$$
+\bigg( \theta_i \mid \sigma^2, y_1, ..., y_n \bigg) \sim \text{Normal}\bigg( \frac{k_0 \mu_0 + \bar y n}{k_0 + n}, \frac{\sigma^2}{k_0 + n} \bigg)
+$$
+
+###Thus
+
+```{r, echo = TRUE}
+nA = 16; nB = 16;
+mu0A = 75; sigma0A = 10;
+mu0B = 75; sigma0B = 10;
+yA = 75.2; sA = 7.3;
+yB = 77.5; sB = 8.1;
+priorWeights = 2^c(0:14)
+
+samples = 100000;
+
+results = c();
+
+for (p in 1:length(priorWeights)){
+  k = priorWeights[p];
+  
+  postGuessVarA = (1/(k+nA))*(k*sigma0A^2 + (nA-1)*sA^2 + ((k*nA)/(k+nA))*(yA - mu0A )^2);
+  postVarianceA = 1/rgamma(samples, (k+nA)/2,((k+nA)*postGuessVarA)/2);
+  postThetaA = rnorm(length(postVarianceA), (k*mu0A+nA*yA)/(nA+k), sqrt(postVarianceA/(k+nA)));
+  
+  postGuessVarB = (1/(k+nB))*(k*sigma0B^2 + (nB-1)*sB^2 + ((k*nB)/(k+nB))*(yB - mu0B )^2);
+  postVarianceB = 1/rgamma(samples, (k+nB)/2,((k+nB)*postGuessVarB)/2);
+  postThetaB = rnorm(length(postVarianceB), (k*mu0B+nB*yB)/(nB+k), sqrt(postVarianceB/(k+nB)));
+  results = c(results, mean(postThetaA < postThetaB));
+}
+
+print("probabilities given the prior weight is 1, 2, 4, ..., 1024")
+print(results)
+plot(priorWeights, results, col = 'red', pch = 16, 
+     main = "Prior Weight vs P( thetaA < thetaB | data )", ylab = "P(thetaA < thetaB | data)")
+```
+
+###As shown in the graph above, statisticians who held a weak or moderate prior belief that $\theta_A = \theta_B$ should be more confident that $\theta_A < \theta_B \mid data$ than those with a strong prior belief that $\theta_A = \theta_B$ since P($\theta_A < \theta_B \mid data$) is around 0.6 to 0.8, as shown in the plot above. However, for someone who was fairly confident that $\theta_A = \theta_B$, their posterior belief  of P($\theta_A < \theta_B \mid data$) should be around $0.5$ since the prior weight should flood out the sampling data.
+
+#Midterm Practice Problems
+
+#Practice Problem 1
+##Let $(Y_1, ..., Y_n \mid \theta) \sim$ Poisson($\theta$). 
+##(1) Find the conjugate family of priors.
+
+$$
+p(\theta \mid Y_1, ..., Y_n) \propto p(\theta) \Pi_{i=1}^{n}\frac{\theta^{y_i}e^{-\theta}}{y_i!} \propto  p(\theta) \theta^{n \bar y}e^{-n\theta} \Rightarrow p(\theta) \propto \theta^{c_1}e^{-c_2\theta}
+$$
+
+###for constants $c_1, c_2$, which makes $p(\theta)$ have a Gamma distribution, so the conjugate family of priors is Gamma. 
+
+##(2) Find the posterior distribution
+
+###Let $\theta \sim \text{Gamma}(a,b)$
+
+$$
+p(\theta \mid Y_1, ..., Y_n) \propto \big( \theta^{a-1}e^{-\theta b}\big)\theta^{n \bar y}e^{-n\theta} = \theta^{a+n \bar y -1}e^{-\theta (n+b)}
+$$
+
+$$
+\Longrightarrow (\theta \mid y_1, ..., y_n) \sim \text{Gamma}(a+n\bar y, n+b)
+$$
+
+##(3) Write down the posterior mean as a weighted average
+
+$$
+\mathbb{E}(\theta \mid y_1, ..., y_n) = \frac{a+n \bar y}{n+b} = \bigg(\frac{a}{b} \bigg) \bigg( \frac{b}{n+b}\bigg)+\bigg(\bar y \bigg) \bigg( \frac{n}{n+b} \bigg)
+$$
+
+#Practice Problem 2
+#Let $(Y_1, .., Y_n \mid \alpha, \beta) \sim^{iid} \text{Gamma}(\alpha, \beta)$, with $\alpha$ known. 
+
+##(1) Find the conjugate family of priors for $\beta$. 
+
+$$
+p(\beta \mid y_1, ..., y_n, \alpha) \propto p(\beta)\Pi_{i=1}^{n}\beta^{\alpha}e^{-\beta y_i} \propto p(\beta) \beta^{n \alpha}e^{-\beta n \bar y} \propto \beta^{c_1}e^{-\beta c_2}
+$$
+
+###for constants $c_1,c_2$. Thus, the posterior distribution of $\beta$ has the shape of a Gamma distribution, so the family of conjugate priors is Gamma. 
+
+##(2) Find the posterior
+
+### Let $\beta \sim \text{Gamma}(a, b)$. Then, 
+
+$$
+p(\beta \mid y_1, ..., y_n, \alpha, a, b) \propto \bigg(\beta^{a-1}e^{-\beta b}\bigg) \beta^{n \alpha}e^{-\beta n \bar y} = \beta^{a +n \alpha -1}e^{-\beta (b + n \bar y)} \Rightarrow \big(\beta \mid \alpha, y_1, ..., y_n, a, b \big) \sim \text{Gamma}(a + n\alpha, b + n \bar y)
+$$
+
+##(3) Give interpretations of the prior hyperparameters
+
+###Since $n \bar y$ is equal to the sum of the values of the observed data, $b + n \bar y$ can be interpreted as the sum of all data observed, for example, it could represent the total counts based on prior count data and current count data, or it could represent the total waiting time at this up to this point. Relatedly, $a$ can be thought of as proportional to the prior sample size, allowing $\frac{a}{b}$, the prior mean, to represent a prior belief of $\beta$, which is the rate parameter, allowing the inverse of the prior mean to represent the prior mean of the value of $Y$.
+
+
+#Practice Problem 3
+#Let $(Y_1, ..., Y_n \mid \theta ) \sim^{iid} \text{Bernoulli}(\theta)$
+
+##(1) Find the conjugate family of priors.
+
+$$
+p(\theta \mid y_1, ..., y_n) \propto p(\theta) p(y_1, ..., y_n \mid \theta) \propto p(\theta) \Pi_{i=1}^{n}\theta^{y_i}(1-\theta)^{1 - y_i} = p(\theta) \theta^{n \bar y}(1-\theta)^{n(1-\bar y)}
+$$
+
+###Which implies the prior should include terms such as $\theta^{c_1} (1-\theta)^{c_2}$, which looks like a Beta distribution. Thus, the conjugate prior family for $\theta$ should be Beta.  
+
+##(2) Find the posterior distribution. 
+
+###Let $\theta \sim \text{Beta}(a, b)$ with $a, b \in \mathbb{Z}$ and positive.  
+
+$$
+p(\theta \mid y_1, ..., y_n) = p(\theta)\bigg( \theta^{n \bar y}(1-\theta)^{n(1-\bar y)} \bigg) \propto \theta^{a-1} (1-\theta)^{b-1}\theta^{n \bar y}(1-\theta)^{n(1-\bar y)} = \theta^{a+n \bar y -1} \big(1-\theta \big)^{b + n -n \bar y-1}
+$$
+
+$$
+\Longrightarrow p(\theta \mid y_1, ..., y_n) \propto \theta^{a+n \bar y -1} \big(1-\theta \big)^{b + n -n \bar y-1} \propto \text{dbeta}(a+n \bar y, b + n - n \bar y)
+$$
+
+###So the posterior distribution is Beta($a+n \bar y, b + n - n \bar y$). 
+
+##(3) Give interpretations of the prior parameters.
+
+###The prior parameter $a$ represents the prior number of successes from the bernoulli distribution, and the prior parameter $b$ represents the prior number of failures from the bernoulli distribution. 
+
+##(4) Find the posterior predictive distribution.
+
+###Let $\tilde Y$ be a future pull from the Bernoulli distribution. Sample space of $\theta$ is $[0,1] \subset \mathbb{R}$. Thus, 
+
+$$
+p(\tilde Y = 1 \mid y_1, ... ,y_n) = \int_{0}^{1}p(\tilde Y \mid \theta, y_1, ... ,y_n)p(\theta \mid y_1, ..., y_n) d\theta  =
+$$
+
+$$
+=\int_{0}^{1}\big(\theta \big)\frac{\Gamma(a+b+n)}{\Gamma(a+n \bar y)\Gamma(b + n - n \bar y)} \bigg(\theta^{a+n \bar y -1} \big(1-\theta \big)^{b + n -n \bar y-1} \bigg) d\theta = 
+$$
+
+$$
+= \frac{\Gamma(a+b+n)}{\Gamma(a+n \bar y)\Gamma(b + n - n \bar y)} \int_{0}^{1}\bigg(\theta^{a+n \bar y + 1-1} \big(1-\theta \big)^{b + n -n \bar y -1} \bigg) d\theta
+$$
+
+###Since the integrand has the shape of a Beta$(a+n \bar y + 1, b + n -n \bar y)$, the integral must integrate to
+
+$$
+\frac{\Gamma\bigg(a+n \bar y + 1 \bigg)\Gamma\bigg(b+n(1- \bar y)\bigg)}{\Gamma\bigg(a+b+n+1\bigg)}
+$$
+###Thus, 
+
+$$
+p(\tilde Y =1 \mid y_1, ... ,y_n) = \frac{\Gamma\big(a+b+n \big)}{\Gamma \big(a+n \bar y \big)\Gamma \big(b + n - n \bar y \big)}\frac{\Gamma\big(a+n \bar y + 1 \big)\Gamma\big(b+n(1- \bar y)\big)}{\Gamma\big(a+b+n+1\big)}
+$$
+
+###Since $a, b, n, n \bar y$ are all non-negative integers, $\Gamma(\nu) = (\nu-1)!$, for $\nu \in (a, b, n , n \bar y)$. Thus,
+
+$$
+p(\tilde Y = 1 \mid y_1, ... ,y_n) = \frac{a+n\bar y}{a+b+n}
+$$
+
+###due to cancelations of factorials, and thus 
+
+$$
+p(\tilde Y = 0 \mid y_1, ... ,y_n) = \frac{b+n(1-\bar y)}{a+b+n}
+$$
+
+###Thus,
+
+$$
+p(\tilde Y =1 \mid y_1, ... ,y_n) = \bigg(\frac{a+n\bar y}{a+b+n} \bigg)^{\tilde Y}\bigg(\frac{b+n(1-\bar y)}{a+b+n}\bigg)^{1- \tilde Y}
+$$
+
+###Which is a Bernoulli$\big(\frac{a+n\bar y}{a+b+n}\big)$ posterior predictive distribution. 
+
+#Practice Problem 4
+#Let $(Y_1, ..., Y_n \mid \theta, \sigma^2) \sim^{iid} \text{Normal}(\theta, \sigma^2)$, with known $\sigma^2$. 
+
+##(1) Find the conjugate family of priors for $\theta$. 
+
+$$
+p(\theta \mid y_1, ..., y_n) \propto p(\theta)p(y_1, ..., y_n \mid \theta) \propto p(\theta)\bigg(\Pi_{i=1}^{n}e^{-\frac{\big(y_i - \theta  \big)^2}{2\sigma^2}} \bigg) = p(\theta)\bigg(\text{exp} \bigg[-\frac{n\theta^2 - 2n \bar y \theta + \sum_{i=1}^{n}y_{i}^{2}}{2\sigma^2} \bigg] \bigg) \propto p(\theta)\text{exp}\bigg[-c_1(\theta - c_2)^2\bigg]
+$$
+
+###For some constants $c_1, c_2$, which gives implies the prior has the shape of a Normal distribution.  Thus, the conjugate family for the prior is a Normal distribution. 
+
+##(2) Find the posterior distribution
+
+###Let $\theta \sim \text{Normal}(\mu_0, \tau_0^2)$ for known prior hyperparameters $\mu_0, \tau_0^2$ with $\tau_0^2 < \infty$. Then, 
+
+$$
+p(\theta \mid y_1, ..., y_n) \propto \text{exp}\bigg[\frac{(\theta - \mu_0)^2}{2\tau_0^2} \bigg] \bigg(\text{exp} \bigg[-\frac{n\theta^2 - 2n \bar y \theta + \sum_{i=1}^{n}y_{i}^{2}}{2\sigma^2} \bigg] \bigg) = \text{exp} \Bigg[-\frac{1}{2}\Bigg(\frac{\theta^2 - 2\theta \mu_0 + \mu_0^2}{\tau_0^2}+\frac{n\theta^2 - 2n \bar y \theta + \sum_{i=1}^{n}y_{i}^{2}}{\sigma^2} \Bigg) \Bigg]
+$$
+
+###Considering only what is in the brackets of the exponential and ignoring the one-half for a moment, the portion within the round brackets simplifies to 
+
+$$
+= \theta^2 \bigg(\frac{1}{\tau_0^2} + \frac{n}{\sigma^2} \bigg) - 2\theta \bigg(\mu_0\frac{1}{\tau_0^2} + \bar y\frac{n}{\sigma^2} \bigg) +\bigg(\frac{\mu_0^2}{\tau_0^2} + \frac{\sum_{i=1}^{n}y_i^2}{\sigma^2} \bigg) 
+$$
+
+###Letting 
+
+$$
+ \tau_n^2= \frac{1}{\frac{1}{\tau_0^2} + \frac{n}{\sigma^2}}
+$$
+
+###and
+
+$$
+\mu_n = \frac{\mu_0\frac{1}{\tau_0^2} + \bar y\frac{n}{\sigma^2}}{1/\tau_n^2}
+$$
+
+###the posterior distribution simplifies to 
+
+$$
+p(\theta \mid y_1, ..., y_n) \propto \text{exp}\bigg[\frac{(\theta - \mu_n)^2}{2\tau_n^2} \bigg]
+$$
+
+###Which implies that the poterior distriubtion for $\theta \mid y_1, ..., y_n$ is Normal $\big(\mu_n, \tau_n^2  \big)$
+
+##(3) Give an interpretation of the prior parameters.
+
+###$\mu_0$ can be thought of as our prior belief of what the average value of $\theta$ should be (i.e. what value we expect $\theta$ to be) and $\tau_{0}^{2}$ is our prior belief of the varience of $\theta$. 
+
+##(4) Find the posterior predictive distribution. 
+
+###If we knew what $\theta, \sigma^2$ were, then $\tilde Y \sim \text{Noraml}(\theta, \sigma^2)$ regardless of any data sampled. Since we do not know what $\theta$ is, to find $p(\tilde Y \mid y_1,..., y_n)$, let $\tilde Y = \theta + \tilde \nu$ where $\tilde \nu \mid \theta, \sigma^2 \sim \text{normal}(0,\sigma^2)$. Thus, the posterior predictive distribution for $Y$ is equal to the posterior predictive distribution of $\theta + \tilde \nu$. Thus, $\tilde Y$ is normal with 
+
+$$
+\mathbb{E}[\theta + \tilde \nu \mid \sigma^2, y_1, ..., y_n] = \mathbb{E}[\theta \mid \sigma^2, y_1, ..., y_n] + \mathbb{E}[\tilde \nu \mid \sigma^2,  y_1, ..., y_n] = \mu_n + 0
+$$
+
+###and
+
+$$
+\mathbb{V}ar[\theta + \tilde \nu \mid \sigma^2, y_1, ... ,y_n] = \tau_n^2 + \sigma^2
+$$
+
+###Thus, the posterior predictive distribution of $\tilde Y$ is Normal$\big(\mu_n, \tau_n^2 + \sigma^2 \big)$. 
+
+

@@ -1,0 +1,79 @@
+---
+title: 'MATH 342D: Homework 6'
+author: "Samuel Eure"
+date: "3/6/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Problem 1
+
+```{r}
+n = 2:1000
+P = rep(0,length(n))
+for(i in n)
+  P[i]= pchisq((i-1)*1.05,i-1)-pchisq((i-1)*.95,i-1)
+
+plot(P, type = 'l', lwd = 4, xlab = "n", 
+     ylab = 'Probability', main = 'Pr(|s^2-variance|<0.05*variance)', col = 'navy')
+
+```
+
+##To show it truely does converge:
+```{r}
+N = 5500
+n = 2:N
+
+P = rep(0,length(n))
+for(i in n){P[i]= pchisq((i-1)*1.05,i-1)-pchisq((i-1)*.95,i-1)}
+
+Nine9 = which(P[1:N] >= 0.99)
+print("The smallest n such that the probability is greater than or equal to .99 is n = ")
+Nine9[1]
+plot(P, type = 'l', lwd = 4, xlab = "n", ylab = 
+       'Probability', main = 'Pr(|s^2-variance|<0.05*variance)', col = 
+       'navy')
+abline(v = Nine9[1], lwd = 3, col = 'red')
+```
+
+
+#Problem 4e
+
+```{r}
+n = 100
+u = 5
+v = 10
+N = 1000
+
+values = rep(0,N)
+for(i in 1:N){
+  samples = rnorm(n,u,sqrt(v))
+  values[i] = sum((samples-u)^2)/n
+}
+hist(values, breaks = 20, col = 'lightblue',ylab = 'count',xlab = 'MLE',
+     main = 'Histogram of 1000 MLE(Varience) Values', freq = F)
+
+V = 2*(v/(n))^2
+HW4cDist = function(x)
+  (1/(sqrt(2*pi*V)))*exp(-((x-v)^2)/(2*(V)))
+                         
+x = seq(0,20,len = 10000)
+lines(x,HW4cDist(x), type = 'l', lwd = 3, col = 'red')
+
+```
+
+###Interestingly, if variance is increases by a factor of n:
+```{r}
+hist(values, breaks = 20, col = 'lightblue',ylab = 'count',xlab = 'MLE',
+     main = 'Histogram of 1000 MLE(Varience) Values', freq = F)
+
+V = n*2*(v/(n))^2
+HW4cDist = function(x)
+  (1/(sqrt(2*pi*V)))*exp(-((x-v)^2)/(2*(V)))
+                         
+x = seq(0,20,len = 10000)
+lines(x,HW4cDist(x), type = 'l', lwd = 3, col = 'red')
+```

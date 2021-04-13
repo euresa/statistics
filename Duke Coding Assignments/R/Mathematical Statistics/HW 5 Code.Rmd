@@ -1,0 +1,72 @@
+---
+title: "Homework 5, Math 342D"
+author: "Samuel Eure"
+date: "2/28/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##1a
+
+#First, Let me graph my likelihood function: L(theta)
+
+```{r}
+X = c(3,5,4,3,7)
+numerator = prod(factorial(X))
+numerator #The Numerator, but this doesn't really matter for the MLE anyway
+sumOfX = sum(X)
+sumOfX #the sumOfX
+L = function(theta)
+  (theta^sumOfX)*exp(-length(X)*theta)/numerator
+
+x = seq(1,9, length.out = 1000)
+
+plot(x,L(x), type = 'l', lwd = 3, xlab = "theta values", ylab = "L(theta)",
+     main = "Graph of Likelihood function L(theta)",col = 'navy')
+```
+
+
+#Now for the log(L(theta)): l(theta)
+```{r}
+l = function(theta)
+  -log(numerator) + sumOfX*log(theta) - length(X)*theta
+
+x = seq(0,30,length.out = 1000)
+plot(x,l(x), type = 'l', lwd = 3, xlab = "theta values", ylab = "l(theta)", 
+     main = "Graph of Log(L(theta): l(theta)", col = 'navy')
+```
+
+##1b
+
+#Now for the MLE
+
+```{r}
+theta_mle = optimize(L, interval = c(0,10), maximum = T)
+theta_mle$maximum
+x = seq(1,9,length.out = 1000)
+plot(x,L(x), type = 'l', lwd = 3, xlab = "theta values", ylab = "L(theta)",
+     main = "Graph of Likelihood function L(theta)",col = 'navy')
+abline(v = theta_mle$maximum, lwd = 2, col  = 2)
+
+x = seq(0,30,length.out = 1000)
+theta_mle = optimize(l, interval = c(0,10), maximum = T)
+theta_mle$maximum
+plot(x,l(x), type = 'l', lwd = 3, xlab = "theta values", ylab = "l(theta)", 
+     main = "Graph of Log(L(theta): l(theta)", col = 'navy')
+abline(v = theta_mle$maximum, lwd = 2,col = 2)
+
+```
+#They're about the same.  "Coincidentally"...
+```{r}
+sumOfX/length(X)
+```
+
+
+
+
+
+
+

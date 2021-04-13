@@ -1,0 +1,542 @@
+---
+title: "STA 360: Homework 9"
+author: "Samuel Eure"
+date: "11/9/2018"
+output: pdf_document
+---
+
+#Problem 9.3
+
+##The Crime Data
+```{r}
+set.seed(1)
+data = read.table("crime.dat", header = T)
+dataNames = names(data)[-1]
+library(MASS);
+Y.X <- data.matrix(data, rownames.force = NA)
+X <- Y.X[,-1]
+Y <- Y.X[,1]
+```
+
+##Functions
+```{r}
+getSSR_g <- function(X,Y,g){
+  result <- t(Y)%*%(diag(length(X[,1]))-(g/(g+1))*X%*%solve(t(X)%*%X)%*%t(X))%*%Y;
+}
+getBetaOLS <- function(X,Y){
+  return(solve(t(X)%*%X)%*%t(X)%*%Y);
+}
+getSSR <- function(B.ols,X,Y){
+  return(t(Y)%*%Y - 2*t(B.ols)%*%t(X)%*%Y + t(B.ols)%*%t(X)%*%X%*%B.ols);
+}
+getSigma2OLS <- function(B.ols, X, Y){
+  SSR = getSSR(B.ols,X,Y);
+  s2ols = SSR/(length(X[,1]) - length(X[1,]));
+  return(s2ols[1]);
+}
+getStandardErrors <- function(B, X, sigma2){
+  xt.x.inverse <- solve(t(X)%*%X);
+  return(sqrt(diag(xt.x.inverse)*sigma2));
+}
+getUnitInfoVariance<- function(B, X, sigma2, n){
+  xt.x.inverse <- solve(t(X)%*%X);
+  return(xt.x.inverse*sigma2*n);
+}
+```
+
+```{r}
+g <- n <- 47; p <- 15;
+nu0 = 2; s0.2 = 1;
+beta.ols = getBetaOLS(X,Y);
+sigma2.ols = getSigma2OLS(beta.ols, X, Y);
+```
+
+##Monte Carlo Samples
+```{r}
+Samples = 10000;
+SSR.g = getSSR_g(X,Y,g);
+SIGMA2 <- 1/rgamma(Samples, (nu0+n)/2, (nu0*sigma2.ols + SSR.g)/2);
+xt.x.inverse <- solve(t(X)%*%X);
+BETA <- matrix(0, nrow = length(SIGMA2), ncol = p);
+for(i in 1:Samples){
+  BETA[i,] <- mvrnorm(1, g*beta.ols/(g+1), g*SIGMA2[i]*xt.x.inverse/(g+1));
+}
+betaNames <- c()
+for(k in 1:15){
+  betaNames <- c(betaNames,paste("Beta", toString(k),": ", dataNames[k], sep = ""));
+}
+
+Summary = matrix(0, nrow = 15, ncol = 3)
+colnames(Summary) = c("Mean", "2.5%", "97.5%")
+rownames(Summary) = betaNames
+
+for(k in 1:15){
+  Summary[k, 1] <- mean(BETA[,k])
+  Summary[k, 2:3] <- quantile(BETA[,k],c(.025, .975))
+}
+print("Posterior information")
+print(Summary)
+
+#Least Squares
+standErrors <- getStandardErrors(beta.ols, X, sigma2.ols)
+SummaryOLS = matrix(0, nrow = 15, ncol = 3)
+colnames(SummaryOLS) = c("OLS_Mean", "2.5%", "97.5%")
+rownames(SummaryOLS) = betaNames
+for(k in 1:15){
+  SummaryOLS[k,1] <- beta.ols[k];
+  SummaryOLS[k,2] <- beta.ols[k]-2*standErrors[k];
+  SummaryOLS[k,3] <- beta.ols[k]+2*standErrors[k];
+}
+print("OLS")
+print(SummaryOLS)
+```
+
+##Comparision of OLS and Bayesian Method
+###Generally speaking, the $\beta$ vector obtained from the ordinary least squares method and the bayesian method look quite similar in terms of the expected values of $\beta_1,...,\beta_{15}$. Moreover, the confidence intervals obtained by both methods look quite similar, however the bayesian method produces narrower confidence intervals for most of the beta values. In addition to this, my Bayesian intervals show that 0 is not in the confidence interval of $Po_1$, suggesting that it is a significant predictor of crime rates, however my ordinary least squares interval for $Po_1$ contains zero, suggesting otherwise. 
+
+###Explanatory variables which seem to have the strongest relationship with crime rate are \textbf{M(Percentage of males aged 14-24), Po1 (police expenditure in 1960), Ed (mean years of schooling), U2 (unemployment rate of urban males ages 35-39), Ineq (income inequality), and Prob (probability of imprisonment)} with increased probability of imprisonment lowering the crime rate (on average) and increases in all of the other significant explanitory variables leading to an increase in crime rate. This is evidenced by the absense of zero in these explanatory variables' confidence intervals. 
+
+##9.3b
+###i
+```{r}
+#Dividing the data roughly in half
+firstHalf <- sample(1:47, 23,replace = F, prob = rep(1/47,47));
+secondHalf = c(setdiff(1:47, firstHalf));
+testX <- X[firstHalf,];
+testY <- Y[firstHalf];
+trainX <- X[secondHalf,];
+trainY <- Y[secondHalf];
+trainBeta.ols <- getBetaOLS(trainX, trainY);
+print("OLS Betas from Training Data")
+print(trainBeta.ols)
+y.ols <- testX%*%trainBeta.ols;
+plot(y.ols, testY, col = rgb(0,0,1,.8), pch = 20, cex=1,
+     main = "Y.ols vs Y.test")
+abline(a = 0, b = 1, lty = 2, lwd = 2, col = rgb(0,0,0,.5))
+print("OLS Prediction Error");
+predError <- sum((y.ols - testY)^2)/length(testY);
+print(predError)
+```
+
+###ii
+```{r}
+g = length(trainY);
+trainSigma2.ols <- getSigma2OLS(trainBeta.ols, trainX, trainY);
+trainSSR.g = getSSR_g(trainX,trainY,g);
+trainSIGMA2 <- 1/rgamma(Samples, (nu0+length(trainY))/2, (nu0*trainSigma2.ols + trainSSR.g)/2);
+train.xt.x.inverse <- solve(t(trainX)%*%trainX);
+trainBETA <- matrix(0, nrow = length(trainSIGMA2), ncol = p);
+for(i in 1:Samples){
+  trainBETA[i,] <- mvrnorm(1, g*trainBeta.ols/(g+1),
+                      g*trainSIGMA2[i]*train.xt.x.inverse/(g+1));
+}
+trainSummary = matrix(0, nrow = 15, ncol = 3)
+colnames(trainSummary) = c("Mean", "2.5%", "97.5%")
+rownames(trainSummary) = betaNames
+
+for(k in 1:15){
+  trainSummary[k, 1] <- mean(trainBETA[,k])
+  trainSummary[k, 2:3] <- quantile(trainBETA[,k],c(.025, .975))
+}
+print("Trained Beta Values Summary")
+print(trainSummary)
+#Given the g prior
+bayes.beta <- trainBeta.ols*g/(g+1)
+y.bayes <- testX%*%bayes.beta;
+plot(y.bayes, testY, col = rgb(.1,.5,1,.8), pch = 20, cex=1,
+     main = "Y.ols vs Y.test")
+abline(a = 0, b = 1, lty = 2, lwd = 2, col = rgb(0,0,0,.5))
+print("Bayes Prediction Error");
+bayes.predError <- sum((y.bayes - testY)^2)/length(testY);
+print(bayes.predError)
+```
+
+###My prediction error using the bayesian method is slightly lower (about 0.01) lower than my ordinary least squares error. This makes sense given that $\nu_0 = 2$ is quite small and $\frac{47}{48}$ $\approx 1$. 
+
+##9.3c
+###For Ordinary Least Squares
+```{r}
+Runs = 1000;
+GROUP_1 <- matrix(0, nrow = Runs, ncol = 23);
+GROUP_2 <- matrix(0, nrow = Runs, ncol = 24);
+OLS_BETAS  <- matrix(0, nrow = Runs, ncol = 15);
+PRED_ERROR <- matrix(0, nrow = Runs, ncol = 1);
+for(run in 1:Runs){
+  GROUP_1[run,] <- sample(1:47, 23,replace = F);
+  GROUP_2[run,] <- c(setdiff(1:47, GROUP_1[run,]))
+}
+for(k in 1:Runs){
+  OLS_BETAS[k,]   <- getBetaOLS(X[GROUP_1[k,],], Y[GROUP_1[k,]])
+  prediction      <- X[GROUP_2[k,],]%*%OLS_BETAS[k,]
+  PRED_ERROR[k,] <- sum((prediction - Y[GROUP_2[k,]])^2/length(GROUP_2[1,]))
+}
+ols.average = mean(PRED_ERROR[,1]);
+print("Expected Value given OLS");
+print(ols.average);
+print("Confidence interval");
+CI95 = matrix(0, nrow = 1, ncol = 2);
+CI95[1,] <- quantile(PRED_ERROR, c(0.025, 0.975));
+colnames(CI95) <- c("2.5%", "97.5%");
+print(CI95)
+```
+
+###For The Bayesian Approach
+```{r}
+g = 23;
+SmallerSamples <- 1000;
+BAYES_ERROR    <- matrix(0, nrow = SmallerSamples, ncol = 1);
+for(run in 1:Runs){
+  localTrainX  <- X[GROUP_1[run,],];
+  localTrainY  <- Y[GROUP_1[run,]];
+  localTestX  <- X[GROUP_2[run,],];
+  localTestY  <- Y[GROUP_2[run,]];
+  localOlsBeta <- OLS_BETAS[run,];
+  localBeta.bayes <- localOlsBeta*g/(g+1);
+  pred.bayes <- localTestX%*%localBeta.bayes
+  BAYES_ERROR[run,1] <- sum((pred.bayes - localTestY)^2/length(GROUP_2[1,]))
+}
+print("Expected Error using Bayesian Method")
+print(mean(BAYES_ERROR))
+CIBayes95     <- matrix(0, nrow = 1, ncol = 2);
+CIBayes95[1,] <- quantile(BAYES_ERROR, c(0.025, 0.975))
+print("With CI")
+colnames(CIBayes95) <- c("2.5%", "97.5%");
+print(CIBayes95)
+```
+
+#Hierarchical Modeling
+
+##Part 1: The Derivation of Gibbs
+
+###Using priors of 
+$$
+\beta_0 \sim MVN(\mu, \Lambda)
+$$
+$$
+\Sigma_0^{-1} \sim Wishart(\eta_0, S_0^{-1})
+$$
+
+###and for each school $j$, sampling 
+
+$$
+\beta_j \sim MVN(\beta_0, \Sigma_0)
+$$
+
+###and approximating $Y_{i,j}$ (the score of the $i^{th}$ student in the $j^{th}$ school) using the model
+
+$$
+Y_{i,j} \sim N(\beta_j^T X_{i,j}, \sigma^2)
+$$
+
+###which can be represented as
+
+$$
+Y_{1:n_j,j} \sim MVN(X_{1:n_j,j}\beta_j, \sigma^2I)
+$$
+
+###where $Y_{1:n_j,j} \in \mathbb{R}^{n_j x 1}$ is vector of the scores of each student in school $j$, and $X_{1:n_j,j} \in \mathbb{R}^{1:n_j \chi p}$ is the matrix where the $k^{th}$ row represent the $k^{th}$ student (one of $n_j$ students in school $j$), of school $j$, and each column represents a different covariate (one of $p$) for that student. The $\sigma^2 I$ represents the identity matrix in $I \in \mathbb{R}^{n_j \chi n_j}$. From now on, I shall represent $X_{1:n_j,j}$ simply as $X_j$. 
+
+###the full conditional distributions of our unknown values can be calculated through the joint distribution
+
+$$
+p(Y, X, \beta_{1:m}, \beta_0, \sigma^2,\Sigma_0) = \bigg[ \prod_{j=1}^m p(Y_j \mid \beta_j, X_j, \sigma^2I) p(\beta_j \mid \beta_0, \Sigma_0)\bigg] p(\sigma^2)p(\beta_0)p(\Sigma_0^{-1})
+$$
+
+##Full Conditional of $\beta_j$
+
+$$
+p(\beta_j \mid \dots) \propto p(Y, X, \beta_{1:m}, \beta_0, \sigma^2,\Sigma_0)\propto p(Y_j \mid \beta_j, X_j, \sigma^2I) p(\beta_j \mid \beta_0, \Sigma_0)
+$$
+$$
+\propto \bigg(e^{-\frac{1}{2}(\beta_j - \beta_0)^T\Sigma_0^{-1}(\beta_j - \beta_0)}\bigg)\bigg(e^{-\frac{1}{2 \sigma^2}(Y_j - X_j\beta_j)^T(Y_j - X_j\beta_j)} \bigg) 
+\propto e^{-\frac{1}{2}\beta_j^T \Sigma_0^{-1}\beta_j +\beta_j^T\Sigma_0^{-1}\beta_0}e^{-\frac{1}{2}\beta_j^T\frac{ X_j^T X_j}{\sigma^2} \beta_j^T +\beta_j^T \frac{X_j^T Y_j}{\sigma^2}}
+$$
+
+$$
+\propto e^{-\frac{1}{2}\beta_j^T\bigg( \Sigma_0^{-1}+ X_j^T X_j/\sigma^2\bigg)\beta_j^T + \beta_j^T\bigg( \Sigma_0^{-1}\beta_0 + X_j^T Y_j/\sigma^2 \bigg)}
+$$
+
+$$
+\Longrightarrow (\beta_j \mid \dots) \sim \text{MVN}\bigg(\big[\Sigma_0^{-1}+ X_j^T X_j/\sigma^2\big]^{-1}\big[ \Sigma_0^{-1}\beta_0 + X_j^T Y_j/\sigma^2 \big] , \big[\Sigma_0^{-1}+ X_j^T X_j/\sigma^2\big]^{-1} \bigg)
+$$
+
+##Full Conditional of $\beta_0$
+
+$$
+p(\beta_0 \mid \dots) \propto  \bigg[ \prod_{j=1}^m  p(\beta_j \mid \beta_0, \Sigma_0)\bigg]p(\beta_0)
+$$
+$$
+\propto \bigg[ e^{-\frac{1}{2}\sum_{j=1}^m (\beta_j - \beta_0)^T\Sigma_0^{-1}(\beta_j - \beta_0)}\bigg]e^{-\frac{1}{2}(\beta_0 - \mu)^T\Lambda^{-1}(\beta_0 - \mu)} \propto \bigg( e^{-\frac{1}{2} m\beta_0^T\Sigma_0^{-1}\beta_0 +   \beta_0^T m\Sigma_0^{-1}\bar \beta }  \bigg)\bigg(e^{-\frac{1}{2}\beta_0^T\Lambda^{-1}\beta_0 + \beta_0 \Lambda^{-1}\mu}\bigg)
+$$
+
+$$
+\propto e^{-\frac{1}{2}\beta_0^T \big[\Lambda^{-1}+m\Sigma_0^{-1}\big]\beta_0 + \beta_0^T\big[\Lambda^{-1}\mu+m\Sigma_0^{-1}\bar \beta \big]}, \hspace{10pt} \bar \beta = \frac{1}{m}\sum_{j=1}^m\beta_j
+$$
+
+$$
+\Longrightarrow (\beta_0 \mid \dots) \sim MVN(\big[\Lambda^{-1}+m\Sigma_0^{-1} \big]^{-1}\big[\Lambda^{-1}\mu+m\Sigma_0^{-1}\bar \beta \big], \big[\Lambda^{-1}+m\Sigma_0^{-1} \big]^{-1} )
+$$
+
+##Full Conditional for $\sigma^2$
+
+$$
+p(1/\sigma^2 \mid \dots) \propto  \bigg[ \prod_{j=1}^m p(Y_j \mid \beta_j, X_j, \sigma^2I)\bigg] p(1/\sigma^2)
+$$
+
+$$
+\propto \bigg(\big|I \big|^{-\frac{\sum_{j=1}^m n_j}{2}}\big(1/\sigma^2 \big)^{\frac{\sum_{j=1}^mn_j}{2}} e^{-\frac{1}{\sigma^2}\sum_{j=1}^m(Y_j - X_j\beta_j)^T(Y_j - X_j\beta_j)}\bigg)  \bigg((1/\sigma^2)^{\frac{\nu_0}{2}-1}e^{-\frac{\nu_0\sigma_0^2}{2}\frac{1}{\sigma^2}} \bigg)
+$$
+$$
+\propto \big(1/\sigma^2 \big)^{\frac{\nu_0 +\sum_{j=1}^m n_j }{2}-1} e^{-\bigg(\frac{\nu_0\sigma_0^2+\sum_{j=1}^m(Y_j - X_j\beta_j)^T(Y_j - X_j\beta_j)}{2}\bigg)\frac{1}{\sigma^2}}
+$$
+$$
+\Longrightarrow (\sigma^2 \mid \dots) \sim \text{Inv-Gamma}\bigg(\frac{\nu_0 +\sum_{j=1}^m n_j }{2},  \frac{\nu_0\sigma_0^2+\sum_{j=1}^m(Y_j - X_j\beta_j)^T(Y_j - X_j\beta_j)}{2}\bigg)
+$$
+
+##Full Conditional for $\Sigma_0^{-1}$
+
+$$
+p(\Sigma_0^{-1} \mid \dots) \propto \bigg[ \prod_{j=1}^m  p(\beta_j \mid \beta_0, \Sigma_0)\bigg]p(\Sigma_0^{-1})
+$$
+$$
+\propto \bigg(\big|\Sigma_0^{-1}\big|^{\frac{m}{2}}e^{-\frac{1}{2}\sum_{j=1}^m (\beta_j - \beta_0)^T\Sigma_0^{-1}(\beta_j-\beta_0)} \bigg)\bigg(\big|\Sigma_0^{-1}\big|^{\frac{\eta_0-p-1}{2}}e^{-\frac{1}{2}tr(S_0\Sigma_0^{-1})}\bigg) \propto \big|\Sigma_0^{-1}\big|^{\frac{(\eta_0 + m) - p - 1}{2}}e^{-\frac{1}{2}tr\bigg([S_0 + S_\beta]\Sigma_0^{-1} \bigg)}
+$$
+$$
+S_{\beta} = \sum_{j=1}^m (\beta_j - \beta_0)(\beta_j - \beta_0)^T
+$$
+
+$$
+\Longrightarrow (\Sigma_0^{-1} \mid \dots ) \sim \text{Wishart}(\eta_0+m, \big[S_0 + S_{\beta} \big]^{-1})
+$$
+
+##Gibbs
+###Starting with a gift from an oricle of initial values of $\big(\sigma^2\big)^{(0)}$, $\big(\Sigma_0^{-1}\big)^{(0)}$, and $\beta_0^{(0)}$
+
+###(1) For $j$ in $1:m$
+$$
+\rightarrow \beta_j^{(s+1)} \sim \text{MVN}\bigg(\big[\big(\Sigma_0^{-1}\big)^{(s)}+ X_j^T X_j/\big(\sigma^2\big)^{(s)}\big]^{-1}\big[ \big(\Sigma_0^{-1}\big)^{(s)}\beta_0^{(s)} + X_j^T Y_j/\big(\sigma^2\big)^{(s)} \big] , \big[\big(\Sigma_0^{-1}\big)^{(s)}+ X_j^T X_j/\big(\sigma^2\big)^{(s)}\big]^{-1} \bigg)
+$$
+
+###(2)
+$$
+\rightarrow \big(\sigma^2\big)^{(s+1)} \sim \text{Inv-Gamma}\bigg(\frac{\nu_0 +\sum_{j=1}^m n_j }{2},  \frac{\nu_0\sigma_0^2+\sum_{j=1}^m(Y_j - X_j\beta_j^{(s+1)})^T(Y_j - X_j\beta_j^{(s+1)})}{2}\bigg)
+$$
+
+###(3)
+$$
+\rightarrow \beta_0^{(s+1)} \sim MVN(\big[\Lambda^{-1}+m\big(\Sigma_0^{-1}\big)^{(s)} \big]^{-1}\big[\Lambda^{-1}\mu+m\big(\Sigma_0^{-1}\big)^{(s)}\big(\bar \beta\big)^{(s+1)} \big], \big[\Lambda^{-1}+m\big(\Sigma_0^{-1}\big)^{(s)} \big]^{-1} )
+$$
+
+###(4)
+$$
+\rightarrow (\Sigma_0^{-1})^{(s+1)} \sim \text{Wishart}(\eta_0+m, \big[S_0 + S_{\beta}^{(s+1)} \big]^{-1})
+$$
+
+#Part II: The Implementation
+
+##Functions
+```{r}
+library(MASS)
+generateX <- function(Nk, p){
+  Covariance <- matrix(.2, nrow = p, ncol = p) + diag(p)*.8;
+  X <- matrix(0, nrow = 1, ncol = p);
+  for(i in 1:Nk){
+    Row_i <- mvrnorm(1,rep(0, p), Covariance);
+    X <- rbind(X, Row_i);
+  }
+  X <- X[-1,]
+  X[,1] = 1;
+  return(X);
+}
+generateY <- function(X, B, Nk, sigma.2){
+  XB <- X%*%B;
+  p = length(X[,1]);
+  Y <- mvrnorm(1, XB, sigma.2*diag(p));
+  return(Y);
+}
+calcualteS_b <- function(beta0, MCMC.Betas, m, s){
+  S_b <- matrix(0, nrow = length(beta0), ncol = length(beta0));
+  for(j in 1:m){
+    Bj <- MCMC.Betas[[j]][s,];
+    S_b <- S_b + (Bj - beta0)%*%t(Bj - beta0);
+  }
+  return(S_b)
+}
+updateGamma <- function(dataY, dataX, MCMC.Betas, m , s){
+  Build <- 0;
+  for(j in 1:m){
+    Xj     <- dataX[[j]];
+    Yj     <- dataY[[j]];
+    Bj <- MCMC.Betas[[j]][s,];
+    Build <- Build + t(Yj - Xj%*%Bj)%*%(Yj - Xj%*%Bj);
+  }
+  return(Build);
+}
+```
+
+#Generate Data
+```{r}
+N <- c(1:10)*10; p <- 10; m <- 10;
+beta0 <- rep(0, p); sigma.2 <- 1; Sigma0 = diag(p);
+dataX <-list();
+dataBetas <- matrix(0, nrow = m, ncol = p);
+dataY <- list();
+for(j in 1:m){
+  Xj             <- generateX(N[j],p);
+  dataX[[j]]     <- Xj;
+  Bj             <- mvrnorm(1, beta0, Sigma0);
+  dataBetas[j,] <- Bj;
+  Yj <- generateY(Xj, Bj, N[j], sigma.2);
+  dataY[[j]] <- Yj;
+}
+```
+
+#Running the Gibbs Sampler
+
+```{r}
+Lambda.inv <- diag(p); eta0 <- 2; S0 <- diag(p); nu0 <- 1; sigma0.2 <- 1;
+mu <- rep(0, p);
+Samples <- 10000;
+MCMC.Beta0 <- matrix(0, nrow = Samples, ncol = p);
+MCMC.sigma2 <- rep(0, Samples);
+MCMC.Sigma0 <- matrix(0, nrow = Samples, ncol = p*p);
+MCMC.Betas <- list(); 
+for(j in 1:m){
+  MCMC.Betas[[j]]  <- matrix(0, nrow = Samples, ncol = p);
+}
+#Initial Values
+sigma.2 <- 1; beta0 <- rep(0, p); Sigma0 <- diag(p);
+#Run the Gibbs
+for(s in 1:Samples){
+  #Betas 1,..., m
+  Sigma0.inv <- solve(Sigma0);
+  betaSums <- rep(0, p);
+  for(j in 1:m){
+    Xj <- dataX[[j]]; Yj <- dataY[[j]];
+    Var.j  <- solve(Sigma0.inv + t(Xj)%*%Xj/sigma.2);
+    Mean.j <- Var.j%*%(Sigma0.inv%*%beta0 + t(Xj)%*%Yj/sigma.2);
+    Beta.j <- mvrnorm(1, Mean.j, Var.j)
+    betaSums <- betaSums + Beta.j;
+    MCMC.Betas[[j]][s,] <- Beta.j;
+  }
+  betaAverage <- betaSums/m;
+  #sigma.2
+  A <- (nu0 + sum(N))/2;
+  B <- (nu0*sigma0.2 + updateGamma(dataY, dataX, MCMC.Betas, m, s))/2;
+  sigma.2 <- 1/rgamma(1, A, B);
+  MCMC.sigma2[s] <- sigma.2;
+  #Beta0
+  beta0.var  <- solve(Lambda.inv + m*Sigma0.inv);
+  beta0.mean <- beta0.var%*%(Lambda.inv%*%mu+m*Sigma0.inv%*%betaAverage);
+  
+  beta0 <- mvrnorm(1, beta0.mean, beta0.var);
+  MCMC.Beta0[s,] <- beta0;
+  #Sigma0
+  Sigma0 <- solve(rWishart(1,eta0+m, solve(S0 + calcualteS_b(beta0, MCMC.Betas,m, s)))[,,1])
+  prepSigma0 <- matrix(Sigma0, nrow = 1, ncol = p*p);
+  MCMC.Sigma0[s,] <- prepSigma0;
+}
+```
+
+
+#Part III: Assessing the Convergence
+
+##Beta Values of each school
+
+###Below, I plot the MCMC average and an MCMC $95\%$ confidence interval for each of the beta values $1,...,10$ for each school $1,...,10$. I also plot what beta value was acutally used to obtain the data (titled "actual") and the difference between my MCMC expected value and the actual value, and the standard error of each variable as the square root of the variance of the sample divided by the effective sample size. As shown in the boxplots, the beta values seem to have reached a stationary distribution given that the distributions are not experiences large movements or changes over time. 
+
+```{r}
+library(coda)
+betaNames <- c()
+for(k in 1:m){
+  betaNames <- c(betaNames,paste("Beta", toString(k), sep = ""));
+}
+for(j in 1:m){
+  Summary = matrix(0, nrow = p, ncol = 6)
+  colnames(Summary) = c("Actual", "Mean", "2.5%", "97.5%", "Difference %", "Standard Error")
+  rownames(Summary) = betaNames
+  for(k in 1:p){
+    Summary[k, 1]   <- dataBetas[j,k];
+    Summary[k, 2]   <- mean(MCMC.Betas[[j]][,k]);
+    Summary[k, 3:4] <- quantile(MCMC.Betas[[j]][,k],c(.025, .975));
+    Summary[k, 5]   <- (Summary[k, 1] - Summary[k,2])/Summary[k,1]*100;
+    Summary[k, 6]   <- sqrt(var(MCMC.Betas[[j]][,k])/effectiveSize(MCMC.Betas[[j]][,k]));
+  }
+  par(mfrow = c(2,5));
+  print(paste("For School ", toString(j)));
+  print(Summary)
+  print(paste("Boxplots of the convergence for B_", toString(m), ", For each specific Beta"))
+  for(k in 1:p){
+        boxplot(MCMC.Betas[[j]][,p][1:2000], MCMC.Betas[[j]][,p][2001:4000], MCMC.Betas[[j]][,p][4001:6000],
+        MCMC.Betas[[j]][,p][6001:8000], MCMC.Betas[[j]][,p][8000:10000])
+  }
+}
+```
+
+
+##$\beta_0$
+
+```{r}
+Summary = matrix(0, nrow = p, ncol = 5)
+colnames(Summary) = c("Actual", "Mean", "2.5%", "97.5%", "Standard Error")
+rownames(Summary) = betaNames
+for(k in 1:p){
+  Summary[k, 1]   <- 0;
+  Summary[k, 2]   <- mean(MCMC.Beta0[,k]);
+  Summary[k, 3:4] <- quantile(MCMC.Beta0[,k],c(.025, .975));
+  Summary[k, 5]   <- sqrt(var(MCMC.Beta0[,k])/effectiveSize(MCMC.Beta0[,k]));
+}
+print("For Beta_0");
+print(Summary)
+par(mfrow = c(3,4));
+for(k in 1:p){
+  plot(1:Samples, MCMC.Beta0[,k], type = 'l', main = paste("Beta_0_", toString(k)))
+}
+```
+
+##$\sigma^2$
+
+```{r}
+Summary = matrix(0, nrow = 1, ncol = 5)
+colnames(Summary) = c("Actual", "Mean", "2.5%", "97.5%", "Standard Error")
+rownames(Summary) = c("Sigma^2")
+for(k in 1:1){
+  Summary[k, 1]   <- 1;
+  Summary[k, 2]   <- mean(MCMC.sigma2);
+  Summary[k, 3:4] <- quantile(MCMC.sigma2,c(.025, .975));
+  Summary[k, 5]   <- sqrt(var(MCMC.sigma2)/effectiveSize(MCMC.sigma2));
+}
+print("For Sigma^2");
+print(Summary)
+plot(1:Samples, MCMC.sigma2, type = 'l', main = paste("Beta_0_", toString(k)))
+boxplot(MCMC.sigma2[1:2000], MCMC.sigma2[2001:4000], MCMC.sigma2[4001:6000],
+        MCMC.sigma2[6001:8000], MCMC.sigma2[8:10000])
+```
+
+###The sampler seems to have done an excellent job reaching the stationary distribution of $\sigma^2$ as shown in the considency of the distribution of $\sigma^2$ values of the boxplots above and the martingale like nature of the movement of the $\sigma^2$ value in the traceplot. Also, the standard error is strickingly small and the expected value is close to $1$, the acutal value which was used to produce the data. 
+
+
+##$\Sigma_0$
+
+###To assess this, I have converted the $p$ by $p$ covariance matrix into a single vector of length $p^2$. I will see how the specific values converge and what their distributions look like. The reader may find this large table of $100$ row difficult to look at, but allow me to point out two interesting features of the table. First, recall that the acutal $\Sigma_0$ that was use to generate the $\beta_j$ values was an identity matrix. The first thing I would like to point out, is that all of the values which correspond to a location on the diagonal of the true $\Sigma_0$ are positive and their confidence intervalse do not contain zero. Secondly, almost all of the off diagonal locations contain zero near the center of their interval. This being said, I feel comfortable with how the Gibbs sampler treated this covariance matrix and am satisified with it's convergence. 
+
+```{r}
+Summary = matrix(0, nrow = p*p, ncol = 5)
+colnames(Summary) = c("Actual", "Mean", "2.5%", "97.5%", "Standard Error")
+Covariance <- matrix(.2, nrow = p, ncol = p) + diag(p)*.8
+actualSigma0 <- matrix(diag(p), nrow = p*p, ncol = 1, byrow = T);
+Summary[,1] <- actualSigma0
+for(k in 1:(p*p)){
+  Summary[k, 2]   <- mean(MCMC.Sigma0[,k]);
+  Summary[k, 3:4] <- quantile(MCMC.Sigma0[,k],c(.025, .975));
+  Summary[k, 5]   <- sqrt(var(MCMC.Sigma0[,k])/effectiveSize(MCMC.Sigma0[,k]));
+}
+print("For Sigma_0");
+print(Summary)
+```
+
+
+
+
+
+ 

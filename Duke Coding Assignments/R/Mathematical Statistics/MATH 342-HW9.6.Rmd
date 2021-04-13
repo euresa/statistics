@@ -1,0 +1,55 @@
+---
+title: "MATH 342: HW 9 Problem 6"
+author: "Samuel Eure"
+date: "4/11/2018"
+output: pdf_document
+fontsize: 13pt
+geometry: margin=0.5in
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Question 6
+
+##Part a
+To double check my handwritten answer:
+```{r}
+d1 = c(1.328 ,1.342 ,1.075 ,1.228 ,0.939 ,1.004 ,1.178 ,1.286)
+d2 = c(1.323,1.322,1.073,1.233,0.934,1.019,1.184,1.304)
+d = cbind(d1,d2)
+colnames(d) = c('op1', 'op2')
+d = data.frame(d)
+t.test(d$op1, d$op2)
+```
+
+Which results in the same p-value and test statistic I arrived at.  
+
+##Part b
+I can easily create 95% confidence intervals for the mean value of each of the operators measurements by the following:
+$$
+\bar{X_1} +/-  F^{-1}_{t_7}(\frac{1-0.05}2)\times\frac{s_1}{\sqrt8}
+$$
+$$
+\bar{X_2} +/- F^{-1}_{t_7}(\frac{1-0.05}2)\times\frac{s_2}{\sqrt8}
+$$
+
+For operator 1:
+```{r}
+V = qt(0.975,7)*sd(d$op1)/sqrt(8)
+mean(d$op1) - V
+mean(d$op1) + V
+```
+I am 95% confident that the mean measurement taken by operator 1 is within [1.045584,1.299416]
+
+For operator 2:
+```{r}
+V = qt(0.975,7)*sd(d$op2)/sqrt(8)
+mean(d$op2) - V
+mean(d$op2) + V
+```
+I am 95% confident that the mean measurement taken by operator 2 is within [1.049031,1.298969].  
+
+##Part c
+Through for my two-sample t-test, I assumed the variances were the same, which was ultimately shown to be a decient assumption since the Welch t-test resulted in the same p value and t statsitic.  I also assume that the data points are normally distributed around a mean and that the data points were collected independently of each other (i.e. iid). 

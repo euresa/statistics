@@ -1,0 +1,580 @@
+---
+title: 'STA 360: Homework 3'
+author: "Samuel Eure"
+date: "9/23/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Math Problem 1
+##Derive the expected value and variance of a poisson distribution with parameter $\theta$
+##Expectation
+###Let
+
+$$
+(Y_i\mid \theta) \sim^{\text{i.i.d}}  \text{Poisson}(\theta) 
+$$
+
+###Then, my definition,since the sample space of $Y$ is ${0,1,2,3,4...}$,
+
+$$
+\mathbb{E}[Y \mid \theta] = \sum_{y=0}^{\infty} y P(Y=y \mid \theta) =\sum_{y = 0}^{\infty}(y)\bigg( \frac{\theta^ye^{-\theta}}{y!} \bigg)= (0)\bigg( \frac{\theta^0e^{-\theta}}{0!} \bigg)\sum_{y = 1}^{\infty}(y)\bigg( \frac{\theta^ye^{-\theta}}{y!} \bigg)=\sum_{y = 1}^{\infty}(y)\bigg( \frac{\theta^ye^{-\theta}}{y!} \bigg)
+$$
+$$
+= \sum_{y = 1}^{\infty}\bigg( \frac{\theta^ye^{-\theta}}{(y-1)!} \bigg)
+$$
+
+###now, if we let $x+1 = y \Rightarrow$,
+
+$$
+\mathbb{E}[Y \mid \theta] = \sum_{x = 0}^{\infty}\bigg( \frac{\theta^{x+1}e^{-\theta}}{(x+1-1)!} \bigg)=e^{-\theta}\theta\sum_{x = 0}^{\infty}\bigg( \frac{\theta^{x}}{x!} \bigg)
+$$
+
+###By the taylor expansion of $e^{x}$, it is known that 
+$$
+\sum_{x = 0}^{\infty}\bigg( \frac{\theta^{x}}{x!} \bigg) = e^{\theta}
+$$
+
+###Thus,
+
+$$
+\mathbb{E}[Y \mid \theta] =e^{-\theta}e^{\theta}\theta =\theta
+$$
+
+###Which is the parameter of the Poisson distribution.  
+
+##Variance
+
+###By definition
+
+$$
+Var(Y\mid\theta) = \mathbb{E}[Y^2\mid\theta] - \big(\mathbb{E}[Y\mid\theta]\big)^2 = \mathbb{E}[Y^2\mid\theta] -\theta^2
+$$
+
+###Thus, all that is left to do is find $\mathbb{E}[Y\mid\theta]\big)^2$
+
+$$
+\mathbb{E}[Y\mid\theta]\big)^2 = \sum_{y=0}^{\infty}y^2P(Y=y\mid\theta) = \sum_{y=0}^{\infty}y^2\frac{\theta^ye^{-\theta}}{y!}
+$$
+$$
+=e^{-\theta}\sum_{y=0}^{\infty}y^2\frac{\theta^y}{y!}=e^{-\theta}\sum_{y=1}^{\infty}y^2\frac{\theta^y}{y!} = e^{-\theta}\sum_{y=1}^{\infty}y\frac{\theta^y}{(y-1)!}
+$$
+
+###Since the first term of the summation is, again, zero. Furthermore, if we let $v+1 = y$,
+
+$$
+\mathbb{E}[Y\mid\theta]\big)^2 = e^{-\theta}\sum_{y=1}^{\infty}y\frac{\theta^y}{(y-1)!} = e^{-\theta}\sum_{v=0}^{\infty}(v+1)\frac{\theta^{v+1}}{v!}= e^{-\theta}\bigg[\sum_{v=0}^{\infty}(v)\frac{\theta^{v+1}}{v!}+\sum_{v=0}^{\infty}(1)\frac{\theta^{v+1}}{v!}\bigg]=e^{-\theta}\theta\bigg[\sum_{v=0}^{\infty}(v)\frac{\theta^{v}}{v!}+\sum_{v=0}^{\infty}\frac{\theta^{v}}{v!}\bigg]
+$$
+$$
+=e^{-\theta}\theta\bigg[\sum_{v=0}^{\infty}(v)\frac{\theta^{v}}{v!}+e^{\theta}] = e^{-\theta}\theta\bigg[\sum_{v=1}^{\infty}(v)\frac{\theta^{v}}{v!}+e^{\theta}\bigg] = e^{-\theta}\theta\bigg[\sum_{v=1}^{\infty}\frac{\theta^{v}}{(v-1)!}+e^{\theta}\bigg]
+$$
+
+###from the Taylor expansion used above and since the first term of the remaining summation will be zero. Now, if we let z+1 = v,
+
+$$
+\mathbb{E}[Y\mid\theta]\big)^2 = e^{-\theta}\theta\bigg[\sum_{v=1}^{\infty}\frac{\theta^{v}}{(v-1)!}+e^{\theta}\bigg] = e^{-\theta}\theta\bigg[\sum_{z=0}^{\infty}\frac{\theta^{z+1}}{(z)!}+e^{\theta}\bigg] = e^{-\theta}\theta\bigg[\theta\sum_{z=0}^{\infty}\frac{\theta^{z}}{(z)!}+e^{\theta}\bigg] 
+$$
+$$
+=e^{-\theta}\theta\bigg[\theta e^{\theta}+e^{\theta}\bigg] = \theta^2 + \theta
+$$
+
+###Thus
+
+$$
+Var(Y\mid\theta) = \mathbb{E}[Y^2\mid\theta] -\theta^2 = (\theta^2 + \theta)-\theta^2 = \theta
+$$
+$$
+Var(Y\mid\theta) = \theta
+$$
+
+
+##Math Problem 2: find $p(\theta \mid	n_0,t_0)$ if $\phi = log(\theta)$ given
+
+$$
+p(\phi \mid	n_0,t_0) = e^{-n_0e^{\phi}}e^{n_0t_0\phi}
+$$
+
+###First, using Jeffery's Rule for Priors,
+
+$$
+p(\phi \mid	n_0,t_0) = p(\theta \mid	n_0,t_0) \Bigg| \frac{d\theta}{d\phi}\Bigg|
+$$
+
+###First I'll find $\frac{d\theta}{d\phi}$
+
+$$
+ \frac{d\theta}{d\phi} = \frac{1}{d\phi/d\theta}=\frac{1}{\frac{d}{d\theta}log(\theta)}=\frac{1}{\frac{1}{\theta}}=\theta
+$$
+
+###Since $\theta$ is non-negative,
+
+$$
+p(\theta \mid	n_0,t_0)  = \frac{p(\phi \mid	n_0,t_0)}{|d\theta/d\phi|} = \frac{p(\phi \mid	n_0,t_0)}{\theta} =  \frac{e^{-n_0e^{\phi}}e^{n_0t_0\phi}}{\theta}
+$$
+
+###Remembering that $\phi = log(\theta)$
+
+$$
+p(\theta \mid	n_0,t_0)  = \frac{e^{-n_0e^{log(\theta)}}e^{n_0t_0log(\theta)}}{\theta}= \frac{\bigg(e^{n_0e^{log(\theta)}}\bigg)^{-1}e^{log(\theta)n_0t_0}}{\theta} =  \frac{\big(e^{n_0\theta}\big)^{-1}\theta^{n_0t_0}}{\theta} = \frac{e^{-n_0\theta}\theta^{n_0t_0}}{\theta}
+$$
+$$
+p(\theta \mid	n_0,t_0)  = \frac{\theta^{n_0t_0}e^{-n_0\theta}}{\theta} = \theta^{n_0t_0-1}e^{-n_0\theta} = \text{gamma}(n_0t_0, n_0)
+$$
+
+#Problem 3.3
+
+##3.3a
+
+###Prior information shows $y_a \sim \text{Poisson}(12)$
+
+```{r, echo = TRUE}
+YA = c(12,9,12,14,13,13,15,8,15,6)
+YB = c(11,11,10,9,9,8,7,10,6,8,8,9,7)
+```
+
+###Assume $\theta_A \sim gamma(120,10)$, $\theta_B \sim gamma(12,1)$, $p(\theta_A, \theta_B) = p(\theta_A)p((\theta_B)$. 
+
+###Let $n_A = 10$, the number of samples from $A$, and, similarly for $B$, let $n_B = 13$. 
+
+###Posterior distribution for $\theta_A$ can be found using Bayes' Rule, as follows:
+
+$$
+p(\theta_A \mid \textbf{y}_\textbf{A} ) = \frac{p(\textbf{y}_\textbf{A} \mid \theta_A )p(\theta_A)}{p(\textbf{y}_\textbf{A})} \propto p(\textbf{y}_\textbf{A} \mid \theta_A )p(\theta_A) \propto \bigg(\Pi_{i = 1}^{10} \theta_A^{y_i}e^{-\theta_A}  \bigg)\big(\theta_A^{120-1}\big)\big(e^{-10\theta_A}\big)
+$$
+$$
+\bigg(\Pi_{i = 1}^{10} \theta_A^{y_i}e^{-\theta_A}  \bigg)\big(\theta_A^{120-1}\big)\big(e^{-10\theta_A}\big)=\bigg(\theta_A^{120+\big(\sum_{i=1}^{10}y_i\big)-1}\bigg)\bigg(e^{-(10+n_A)\theta_A}\bigg)
+$$
+
+###Thus
+
+$$
+p(\theta_A \mid \textbf{y}_\textbf{A} )  \propto \bigg(\theta_A^{120+\big(\sum_{i=1}^{10}y_i\big)-1}\bigg)\bigg(e^{-20\theta_A}\bigg)
+$$
+$$
+\Longrightarrow
+$$
+
+##Equation 1
+
+$$
+p(\theta_A \mid \textbf{y}_\textbf{A} ) = \text{gamma}\bigg(120 + \sum_{i=1}^{10}y_i, 10 + n_A \bigg) 
+$$
+
+###Since
+
+```{r, echo = TRUE}
+print(paste("nA      = ", length(YA)))
+print(paste("sum(YA) = ", sum(YA)))
+```
+
+##The distribution of $p( \theta_A \mid \textbf{y}_\textbf{A} )$ is
+
+$$
+p(\theta_A \mid \textbf{y}_\textbf{A} ) = \text{gamma}\big(237, 20 \big)
+$$
+
+###which has a mean of $\frac{237}{20}$ and a variance of $\frac{237}{20^2} =\frac{237}{400}$, thus,
+
+$$
+\mathbb{E}[\theta_A \mid  \textbf{y}_\textbf{A}] = \frac{237}{20}
+$$
+$$
+Var[\theta_A \mid \textbf{y}_\textbf{A}] = \frac{237}{400}
+$$
+
+###Using this information about the distirbution, a $95\%$ convidence interval can be found via R's built in gamma distributions
+
+```{r, echo = TRUE}
+lowerBound = qgamma(.025, 237, 20)
+upperBound = qgamma(1-.025, 237, 20)
+print(paste("95% quantile based CI for ThetaA:", 
+            "[", lowerBound,",",upperBound, "]"))
+```
+
+###To obtain all the above information for $\theta_B$, I simply refer $\textbf{equation 1}$ which was derived earlier, and use $\sum_{i=1}^{13}y_i$ for $\textbf{y}_\textbf{B}$, $n_B$, and replace the $120$ and $10$ with $12$ and $1$ respectively since these numbers came from the prior distribution of $\theta_A$ (and should now come from the prior of $\theta_B$). This results in 
+
+$$
+p(\theta_B \mid \textbf{y}_\textbf{B} ) = \text{gamma}\bigg(12 + \sum_{i=1}^{13}y_i, 1 + n_B \bigg)
+$$
+
+```{r, echo = TRUE}
+print(paste("nB      = ", length(YB)))
+print(paste("sum(YB) = ", sum(YB)))
+```
+
+$$
+\Longrightarrow
+$$
+
+$$
+p(\theta_B \mid \textbf{y}_\textbf{B} ) = \text{gamma}\big(12 + 113, 1 + 13 \big) = \text{gamma}\big(125, 14 \big)
+$$
+
+$$
+\Longrightarrow 
+$$
+
+$$
+\mathbb{E}[\theta_B \mid \textbf{y}_\textbf{B}] = \frac{125}{14}
+$$
+
+$$
+Var[\theta_B \mid \textbf{y}_\textbf{B}] = \frac{125}{196}
+$$
+
+```{r, echo = TRUE}
+lowerBound = qgamma(.025, 125, 14)
+upperBound = qgamma(1-.025, 125, 14)
+print(paste("95% quantile based CI for ThetaB:", 
+            "[", lowerBound,",", upperBound, "]"))
+```
+
+##3.3b
+
+###Using a new prior for $\theta_B$ of $\text{gamma}(12n_0, n_0)$, the new posterior distribution for $\theta_B$ will be
+
+$$
+p(\theta_B \mid \textbf{y}_\textbf{B} ) = \text{gamma}\big(12n_0 + 113, n_0 +13\big)
+$$
+
+### which has an expectation of 
+
+$$
+\mathbb{E}[\theta_B \mid \textbf{y}_\textbf{B}] = \frac{12n_0+113}{n_0+13}
+$$
+
+###based on equation 1 derived above, and where $113$ and $13$ are the sum of the $y_B$ values and the number of $y_B$ observations. Using $n_0 \in \{1,2,...,50\}$ 
+
+```{r, echo = TRUE}
+n = 1:50
+E = (12*n+sum(YB))/(n+13)
+E
+plot(n, E, xlab = "n0", ylab = "Expect [ Theta_B | Data ]", type = 'l', lwd = 3, col = "red", 
+     main = "Posterior Expectation vs n0")
+```
+
+###Since the data collected from group B ($\textbf{y}_\textbf{B}$) was larger and had a sample mean lower than that of group A's ($8.69$ for group B vs. $11.7$ for group A), the posterior expectation for $\theta_B$ gets pulled down by the samples more severely than the posterior expectation $\theta_A$. This is coupled with the fact that the prior of $A$ is weighted much more heavily than the prior of $B$ ($120$ vs $12$, etc.) which means the posterior expectation of $A$ is less likely to deviate from the prior expectation given a small sample size (since the posterior expectation is proportionally balanced between the prior mean and the sample mean).  
+
+###Thus, since the prior expectations are equivalent for $\theta_B$ and $\theta_A$, $\theta_B$ would need a very heavily weighted prior with $n_0 > (\sim 250)$ in order for the posterior expectation to be similar.  This is shown in the graph below. Here, the blue line represents the posterior expectation of $\theta_A$ and the red line represents the posterior expectation of $\theta_B$. 
+
+```{r, echo = TRUE}
+n = 1:300
+E = (12*n+sum(YB))/(n+13)
+plot(n, E, xlab = "n0", ylab = "Expect [ Theta_B | Data ]", type = 'l', lwd = 3, col = "red", 
+     main = "Post. Expect B approaches Post. Expect. A")
+abline(h = 237/20, col = 'blue', lwd = 3)
+```
+
+
+###Looking at this graph, one may imageing that the posterior expecation of $\theta_B$ asymptotically approaches the posterior expectation of $\theta_A$. This of course cannot be true, since the posterior expectation of $\theta_A$ is $11.85$, which is less than $12$, and as $n_0 \rightarrow \infty$, the posterior expectation of $\theta_B$ approaches $12$ (the prior expectation) which is greater than $11.85$. In fact, the lines cross at around $n_0 = \sim 273$
+
+```{r, echo = TRUE}
+n = 272:275
+E = (12*n+sum(YB))/(n+13)
+plot(n, E, xlab = "n0", ylab = "Expect [ Theta_B | Data ]", type = 'l', lwd = 3, col = "red", 
+     main = "Post. Expect B approaches Post. Expect. A")
+abline(h = 237/20, col = 'blue', lwd = 3)
+```
+
+##3.3c
+
+###The problem states that the strain B mice are \emph{related} to the type A mice, and in the problem we even took this knowledge to guess the prior for $\theta_B$. Thus, it seems reasonable to assume that knowing some information about $\theta_A$ should provide some information as to what ball park $\theta_B$ should be in. This being said, it doesn't make sense to have a complete independence between $\theta_A$ and $\theta_B$, and thus having $p(\theta_A, \theta_B) = p(\theta_A)p(\theta_B)$ does not make sense.
+
+
+
+#Problem 3.9
+
+###For $p(\theta)$ to be a conjugate prior to the Galeshore distirubtion, we need
+
+$$
+p(\theta \mid y) \propto p(\theta)p(y \mid \theta, a) \propto p(\theta)y^{2a-1}\theta^{2a}e^{-y^2\theta^2}
+$$
+
+###which, can be represented as 
+
+$$
+p(\theta \mid y) \propto p(\theta)y^{2a-1}\theta^{c_1}e^{-c_2\theta^2}
+$$
+
+###Thus, if we need our class of priors to be conjugate with the Galeshore$(a,\theta)$, we need $p(\theta)$ to be a member of a class which includes terms of $\theta^{c_1}$ and $e^{-c_2\theta^2}$ for some constants $c_1$ and $c_2$.   
+
+###Conveniently, we can represent the $p(y \mid a,\theta)$ as
+
+$$
+p(y \mid a, \theta) = \frac{1}{Z}y^{c_1}\text{exp}\{- c_2 y^2 \}
+$$
+
+###with $c_1 = 2a-1$, $c_2=\theta^2$, and a normalization constant of $Z$. Thus, a Galeshore Prior is a member of this class of conjugate priors for $\theta$.  
+
+###Additionally, if we simply redefine $\theta$ as $\theta = \phi^{1/2}$, then
+
+$$
+p(y \mid a, \phi) = \frac{2}{\Gamma(a)}\phi^ay^{2a-1}e^{-\phi y^2}
+$$
+
+###and thus, we could simply find a prior for $\phi$, which looks suspiciously like a Gamma, in fact, if
+
+$$
+p(\phi \mid y) \propto p(\phi)p(y \mid \phi) \propto p(\phi)\phi^{c_1}e^{-c_2\phi}
+$$
+
+###where $c_1 = a$ and $c_2 = y^2$, then if $\phi$ is simply Gamma $(\alpha, \beta)$, then
+
+$$
+p(\phi \mid y) \propto p(\phi)p(y \mid \phi) \propto \phi^{\alpha - 1}e^{-\phi \beta}\phi^{c_1}e^{-c_2\phi} = \phi^{\alpha + c_1 - 1}e^{-\phi(c_2 + \beta)}
+$$
+
+###which results in a $(\phi \mid y) \sim \text{Gamma}(\alpha + c_1, c_2 + \beta)$, or, more specifically for this problem, a Gamma $(\alpha + a, \beta + y^2)$. 
+
+###Now, we've all seen a gamma distribution before, so I'll plot some of the Galenshore priors.
+
+```{r}
+par(mfrow = c(2,3))
+p = function(y,a,t){
+  v = (2/gamma(a))*t^(2*a)*(y^(2*a-1))*exp(-t^2*y^2)
+  return(v)
+}
+
+y = seq(0,15,by = 0.01)
+A = c(.8,2)
+Theta = c(.1,.3,.5)
+
+for (a in A){
+  for (t in Theta){
+    plot(y,p(y,a,t), type = 'l', lwd = 2, col = "blue", main = paste("a:",a,", ","theta:",t))
+  }
+}
+```
+
+##3.9b
+
+###Using a prior of $(\theta \mid \alpha, \beta) \sim \text{Galenshore}(\alpha, \beta)$, the posterior distribution is
+
+$$
+p(\theta \mid y_1, y_2, ..., y_n) \propto p(\theta \mid \alpha, \beta)\Pi_{i=1}^{n}p(Y_i = y_i \mid a,\theta) \propto \bigg( \theta^{2\alpha-1}e^{-\theta^2\beta^2} \bigg) \Pi_{i=1}^{n}\theta^{2a}y_{i}^{2a-1}e^{-\theta^2y_{i}^2}
+$$
+
+$$
+\Rightarrow p(\theta \mid y_1, y_2, ..., y_n) \propto \bigg( \theta^{2\alpha-1}e^{-\theta^2\beta^2} \bigg) \theta^{(2a)n}\bigg(\Pi_{i=1}^ny_{i}\bigg)^{2a-1}e^{-\theta^2\bigg(\sum_{i=1}^{n}y_{i}^2\bigg)} \propto  \theta^{2(\alpha+an)-1}  e^{-\theta^2\bigg(\beta^2+\sum_{i=1}^{n}y_{i}^2\bigg)}
+$$
+
+###Which means 
+
+$$
+\bigg(\theta \mid y_1,..., y_n\bigg) \sim \text{Galenshore}\bigg(\alpha + an, \sqrt{ \beta^2 +  \sum_{i=1}^{n}y_{i}^2}\bigg)
+$$
+
+
+###Which is a pretty remarkable posterior if you ask me. Additionally, it appears that $\sum_{i=1}^{n}y_i^2$ is a sufficient statistic for $(y_1, ..., y_n)$ given the data. 
+
+##3.9c
+
+###If we let
+
+$$
+(\theta_a \mid \alpha_a, \beta_a) \sim \text{Galenshore}(\alpha_a, \beta_a)
+$$
+
+
+###and
+
+$$
+(\theta_b \mid \alpha_b, \beta_b) \sim \text{Galenshore}(\alpha_b, \beta_b)
+$$
+
+###Then $\frac{p\big(\theta_a \mid (y_1,...,y_n)\big)}{p\big(\theta_b \mid (y_1,...,y_n)\big)}$ will be equal to 
+
+$$
+\frac{p\big(\theta_a \mid (y_1,...,y_n)\big)}{p\big(\theta_b \mid (y_1,...,y_n)\big)} = \frac{\frac{ p(\theta_a)p(y_1, ..., y_n \mid \theta_a)}{p(y_1, ..., y_n)}}{\frac{p(\theta_b)p(y_1, ..., y_n \mid \theta_b)}{p(y_1, ..., y_n)}} =\frac{ p(\theta_a)p(y_1, ..., y_n \mid \theta_a)}{p(\theta_b)p(y_1, ..., y_n \mid \theta_b)}
+$$
+
+$$
+=\frac{\bigg(\frac{2}{\Gamma(\alpha_a)}\beta_{a}^{2\alpha_a} \theta_a^{2\alpha_a-1}e^{-\theta_a^2\beta_a^2} \bigg) \bigg(\Pi_{i=1}^{n}\frac{2}{\Gamma(a)}  \theta_a^{2a}y_{i}^{2a-1}e^{-\theta_a^2y_{i}^2}\bigg)}{\bigg(\frac{2}{\Gamma(\alpha_b)}\beta_{b}^{2\alpha_b} \theta_b^{2\alpha_b-1}e^{-\theta_b^2\beta_b^2} \bigg) \bigg(\Pi_{i=1}^{n}\frac{2}{\Gamma(a)}  \theta_b^{2a}y_{i}^{2a-1}e^{-\theta_b^2y_{i}^2}\bigg)}
+$$
+
+$$
+=\frac{\bigg(\frac{2}{\Gamma(\alpha_a)}\beta_{a}^{2\alpha_a} \theta_a^{2\alpha_a-1}e^{-\theta_a^2\beta_a^2} \bigg) \Bigg(\bigg(\frac{2}{\Gamma(a)}\bigg)^n \big(\theta_a^{2a}\big)^n \big(\Pi_{i=1}^{n}y_{i}\big)^{2a-1}e^{-\theta_a^2\bigg(\sum_{i=1}^{n}y_{i}^2\bigg)}\Bigg)}{\bigg(\frac{2}{\Gamma(\alpha_b)}\beta_{a}^{2\alpha_b} \theta_b^{2\alpha_b-1}e^{-\theta_b^2\beta_b^2} \bigg) \Bigg(\bigg(\frac{2}{\Gamma(a)}\bigg)^n \big(\theta_b^{2a}\big)^n \big(\Pi_{i=1}^{n}y_{i}\big)^{2a-1}e^{-\theta_b^2\bigg(\sum_{i=1}^{n}y_{i}^2\bigg)}\Bigg)}
+$$
+
+$$
+=\frac{\bigg(\Gamma(\alpha_b)\beta_{a}^{2\alpha_a} \theta_a^{2\alpha_a-1}e^{-\theta_a^2\beta_a^2} \bigg) \Bigg( \big(\theta_a^{2a}\big)^n e^{-\theta_a^2\bigg(\sum_{i=1}^{n}y_{i}^2\bigg)}\Bigg)}{\bigg(\Gamma(\alpha_a)\beta_{a}^{2\alpha_b} \theta_b^{2\alpha_b-1}e^{-\theta_b^2\beta_b^2} \bigg) \Bigg( \big(\theta_b^{2a}\big)^n e^{-\theta_b^2\bigg(\sum_{i=1}^{n}y_{i}^2\bigg)}\Bigg)}
+$$
+
+$$
+\Rightarrow \frac{p\big(\theta_a \mid (y_1,...,y_n)\big)}{p\big(\theta_b \mid (y_1,...,y_n)\big)} =\frac{\Gamma(\alpha_b)}{\Gamma(\alpha_a)}\bigg(\frac{\beta_a^{\alpha_a}}{\beta_b^{\alpha_b}}\bigg)^{2}\bigg(\frac{\theta_a^{2(\alpha_a+an)-1}}{\theta_b^{2(\alpha_b+an)-1}}\bigg)\frac{e^{-\theta_a^2(\beta_a^2+\sum_{i=1}^{n}y_{i}^2)}}{e^{-\theta_b^2(\beta_b^2+\sum_{i=1}^{n}y_{i}^2)}}
+$$
+
+###Thus, $\sum_{i=1}^{n}y_{i}^2$ is a sufficient statistics for the data. 
+
+##3.9d
+
+###Using the formula for the expected value of a variable $Y$ taken from a Galenshore($a, \theta$) distribution provided in the book, and using the fact that
+
+$$
+\bigg(\theta \mid y_1,..., y_n\bigg) \sim \text{Galenshore}\bigg(\alpha + an, \sqrt{ \beta^2 +  \sum_{i=1}^{n}y_{i}^2}\bigg)
+$$
+
+
+###When $(\theta) \sim \text{Galenshore}(\alpha, \beta)$ the posterior expecation of $\theta$ is 
+
+$$
+\mathbb{E}\big[\theta \mid y_1, ..., y_n \big] = \frac{\Gamma(\alpha + an+1/2)}{\Gamma(\alpha + an)\sqrt{ \beta^2 +  \sum_{i=1}^{n}y_{i}^2}}
+$$
+
+##3.9e
+
+###Well, this is going to get messy, but here it goes,
+
+$$
+p(\tilde{y} \mid y_1, ..., y_n) = \int_0^{\infty}p(\tilde{y}\mid \theta, y_1, ..., y_n)p(\theta \mid y_1, ..., y_n)d\theta
+$$
+
+$$
+=\int_0^{\infty}\bigg(\frac{2}{\Gamma(a)}\theta^{2a}\tilde{y}^{2a-1}e^{-\theta^2\tilde{y}^2} \bigg) \bigg(\frac{2}{\Gamma(\alpha +an)} \big(\beta^2+\sum_{i=1}^{n}y_{i}^2\big)^{2(\alpha+an)} \theta^{2(\alpha+an)-1}  e^{-\theta^2\bigg(\beta^2+\sum_{i=1}^{n}y_{i}^2\bigg)} \bigg)d\theta
+$$
+
+$$
+=\frac{2}{\Gamma(a)}\frac{2}{\Gamma(\alpha +an)}\tilde{y}^{2a-1}\big(\beta^2+\sum_{i=1}^{n}y_{i}^2\big)^{2(\alpha+an)}\int_0^{\infty}\bigg(\theta^{2a}e^{-\theta^2\tilde{y}^2} \bigg) \bigg(\theta^{2(\alpha+an)-1}  e^{-\theta^2\bigg(\beta^2+\sum_{i=1}^{n}y_{i}^2\bigg)} \bigg)d\theta
+$$
+
+$$
+=\frac{2}{\Gamma(a)}\frac{2}{\Gamma(\alpha +an)}\tilde{y}^{2a-1}\big(\beta^2+\sum_{i=1}^{n}y_{i}^2\big)^{2(\alpha+an)}\int_0^{\infty} \bigg(\theta^{2(\alpha+an)+2a-1}  e^{-\theta^2\bigg(\tilde{y}^2+\beta^2+\sum_{i=1}^{n}y_{i}^2\bigg)} \bigg)d\theta
+$$
+
+$$
+= \frac{2}{\Gamma(a)}\frac{2}{\Gamma(\alpha +an)}\tilde{y}^{2a-1}\big(\beta^2+\sum_{i=1}^{n}y_{i}^2\big)^{2(\alpha+an)}\int_0^{\infty} \bigg(\theta^{2(\alpha+a(n+1))-1}  e^{-\theta^2\bigg(\tilde{y}^2+\beta^2+\sum_{i=1}^{n}y_{i}^2\bigg)} \bigg)d\theta
+$$
+
+###The integral must integrate to $\frac{1}{\text{normalization constant}}$ for a Galenshore pdf, thus
+
+$$
+p(\tilde{y} \mid y_1, ..., y_n) = \frac{2}{\Gamma(a)}\frac{2}{\Gamma(\alpha +an)}\tilde{y}^{2a-1}\big(\beta^2+\sum_{i=1}^{n}y_{i}^2\big)^{2(\alpha+an)}\Bigg(\frac{\Gamma(\alpha + a(n+1))}{2\big(\tilde{y}^2+\beta^2+\sum_{i=1}^ny_i^2 \big)^{\alpha+a(n+1)} } \Bigg)
+$$
+
+$$
+p(\tilde{y} \mid y_1, ..., y_n)=\frac{2\tilde{y}^{2a-1}\big(\beta^2+\sum_{i=1}^{n}y_{i}^2\big)^{2(\alpha+an)}}{\Gamma(a)\Gamma(\alpha +an)}\Bigg(\frac{\Gamma(\alpha + a(n+1))}{\big(\tilde{y}^2+\beta^2+\sum_{i=1}^ny_i^2 \big)^{\alpha+a(n+1)} } \Bigg)
+$$
+
+###Behold! The posterior predictive density function!
+
+#4.1
+
+###From problem 3.1e from homework 2, we discovered that the posterior distribution of $\theta_1$ was
+
+$$
+(\theta_1 \mid y_1, ..., y_n) \sim \text{beta}(1+\sum_{i=1}^{n}y_i, 1+n -\sum_{i=1}^{n}y_i)
+$$
+
+###thus,
+
+$$
+(\theta_1 \mid y_1, ..., y_{100}) \sim \text{beta}(1+57, 1+100 -57)
+$$
+
+##and
+
+$$
+(\theta_2 \mid y_1, ..., y_{50}) \sim \text{beta}(1+30, 1+50 -30)
+$$
+
+```{r, echo = TRUE}
+n1 = 100; y1 = 57;
+n2 = 50; y2 = 30;
+S = 5000;
+T1 = rbeta(S, 1+y1,1+n1-y1)
+T2 = rbeta(S, 1+y2,1+n2-y2)
+solution = mean(T1<T2)
+print(paste("Pr(Theta1 < Theta2 |data and priors) =", solution))
+```
+
+#4.2
+
+##4.2a
+
+###Since $(\theta_A \mid \textbf{y}_A) \sim \text{Gamma}(237, 20)$ and $(\theta_B \mid \textbf{y}_B) \sim \text{Gamma}(125, 14)$, the desired statistic can be calculated by taking $100000$ samples from each of the posterior distributions
+
+```{r, echo = TRUE}
+size = 100000
+SampleA = rgamma(size, 237, 20)
+SampleB = rgamma(size, 125, 14)
+print(paste("Pr(ThetaB < ThetaA | yA, yB) = ", mean(SampleB < SampleA)))
+```
+
+##4.2b
+
+```{r}
+results = c()
+size = 100000
+N = 1:50;
+for (n in N){
+  SampleA = rgamma(size, 237, 20);
+  SampleB = rgamma(size, 12*n + 113, n+13);
+  solution = mean(SampleB < SampleA);
+  results = c(results, solution)
+  print(paste("Pr(ThetaB < ThetaA | yA, yB, n=",n,") = ", solution))
+}
+plot(N, results, main = 'N vs Pr(ThetaB < ThetaA | yA, yB)',
+     ylab = 'Pr(ThetaB < ThetaA | yA, yB)', col = 'blue', type = 'l', lwd = 3)
+```
+
+###As shown in the plot above, $P(\theta_B < \theta_A \mid \textbf{y}_A, \textbf{y}_B)$ seems to be almost linearly dependent on the prior sample size of $\theta_B$, which doesn't make it rediculously sensitive to the prior sample size (it isn't exponentially or polynomially dependent), however if one was to make the prior sample size as large as the prior sample size of $\theta_A$, then it can impact the results.  But fluxuations of about $10$ samples doesn't cause a dramatic change in the outcome.  
+
+##4.2c
+
+###First, I'll draw random $\theta_A$ and $\theta_B$ from their posterior distributions. Then, I'll sample from the conditional distributions of $\tilde{Y} \mid \theta, y_1, ..., y_n)$.  
+
+```{r, echo = TRUE}
+
+size = 50000;
+A1 = 120; B1 = 10;
+A2 = 12; B2 = 1;
+YA = c(12,9,12,14,13,13,15,8,15,6);
+YB = c(11,11,10,9,9,8,7,10,6,8,8,9,7);
+
+Y.thetaA = rep(0,size)
+Y.thetaB = rep(0,size)
+for (s in 1:size){
+  ThetaA.y = rgamma(1, A1+sum(YA), B1+length(YA));
+  Y.thetaA[s] = rpois(1,ThetaA.y);
+  ThetaB.y = rgamma(1, A2+sum(YB), B2+length(YB));
+  Y.thetaB[s] = rpois(1, ThetaB.y);
+}
+print(paste("Pr( YB < YA | ya, yb) = ",mean(Y.thetaB<Y.thetaA)))
+
+```
+
+
+```{r, echo = TRUE}
+results = c()
+size = 50000
+
+A1 = 120; B1 = 10;
+YA = c(12,9,12,14,13,13,15,8,15,6);
+YB = c(11,11,10,9,9,8,7,10,6,8,8,9,7);
+
+N = 1:50;
+for (n in N){
+  for (s in 1:size){
+    ThetaA.y = rgamma(1, A1+sum(YA), B1+length(YA));
+    Y.thetaA[s] = rpois(1,ThetaA.y);
+    ThetaB.y = rgamma(1, 12*n+sum(YB), n+length(YB));
+    Y.thetaB[s] = rpois(1, ThetaB.y);
+  }
+  solution = mean(Y.thetaB<Y.thetaA);
+  results = c(results, solution)
+  print(paste("Pr(YB < YA | yA, yB, n=",n,") = ", solution))
+}
+plot(N, results, main = 'N vs Pr(YB < YA | yA, yB)',
+     ylab = 'Pr(YB < YA | yA, yB)', col = 'blue', type = 'l', lwd = 3)
+```
+
+###Given my plot above, it appears that this probability is quite sensitive when values of $n$ are low, and then the sensitivity to this value decreases as n gets larger and larger, perhaps eventually reaching a platue.  
+
+
+
+
+
+

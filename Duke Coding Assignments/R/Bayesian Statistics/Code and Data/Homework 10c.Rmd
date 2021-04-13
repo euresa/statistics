@@ -1,0 +1,480 @@
+---
+title: 'STA 360: Homework 10c'
+author: "Samuel Eure"
+date: "12/2/2018"
+output: pdf_document
+---
+
+#Problem 11.4
+
+##The Data
+```{r}
+data <- read.csv("mathstandard.txt", header = T)
+counties <- unique(data$county)
+Y <- data$metstandard;
+X <- matrix(c(data$percentms), ncol = 1);
+```
+
+#Part a
+![Relationship Diagram and Priors](picture.jpg){width=500px}.
+
+#Part b
+
+##Logistic
+```{r}
+BetaEstimate <- matrix(0,nrow = length(counties), ncol = 3);
+colnames(BetaEstimate)<- c('intercept', 'percentMasters', 'samples');
+rownames(BetaEstimate)<- counties;
+plotXValues <- c();
+countyToX   <- list();
+countyToY   <- list();
+countyToProbs <- list();
+for(j in 1:length(counties)){
+  countyX1         <- X[data$county == counties[j]];
+  countyY          <- Y[data$county == counties[j]];
+  model.j          <- glm(countyY ~ 1+ countyX1, family = binomial);
+  beta.j           <- model.j$coef;
+  BetaEstimate[j,c(1,2)] <- beta.j;
+  if(length(countyY) == 1){BetaEstimate[j,2] <-0; beta.j[2]<-0}
+  countyToX[[j]] <- countyX1; #This will be used in the MH step
+  countyToY[[j]] <- countyY;  #This will be used in the MH step
+  BetaEstimate[j,3] <- length(countyY)
+  z <-countyX1*beta.j[2]+beta.j[1];
+  countyToProbs[[j]] <- exp(z)/(1+exp(z));
+}
+BetaEstimate
+```
+
+###The table above shows my initial estimates of the values of $\beta_j$ for each county $j$. As shown, some of these values are $0.0000$, which may look like a computation error or data entry error. However, these values were initially $NA$, I simply changed them to zero for an important reason. First, notice that all the counties $j$ which have a $NA$ value for $x_{1,j}$ also only have one sample (or school) which represents them in the data set. Thus, a regression line can only be a constant (the intercept) value since one must have two data points to calculate slope. 
+```{r}
+i=1
+C <- c('darkred', 'blue', 'darkgreen','purple','black','darkorange')
+while(i < length(counties)){
+  par(mfrow = c(2,3))
+  top <- min((i+5),length(counties))
+  for(j in i:top){
+    countyX1 <- X[data$county == counties[j]];
+    plot(countyX1, countyToProbs[[j]], main = counties[j], 
+         xlab = '%Teachers with Masters', ylab = 'probability',
+         col = C[j%%6+1], pch = 20, cex = 2)
+  }
+  i <- i + 6;
+}
+```
+
+##Probit 
+```{r}
+pro.BetaEstimate <- matrix(0,nrow = length(counties), ncol = 3);
+colnames(pro.BetaEstimate)<- c('intercept', 'percentMasters', 'samples');
+rownames(pro.BetaEstimate)<- counties;
+plotXValues <- c();
+pro.countyToProbs <- list();
+for(j in 1:length(counties)){
+  countyX1         <- X[data$county == counties[j]];
+  countyY          <- Y[data$county == counties[j]];
+  model.j          <- glm(countyY ~ 1+ countyX1, family = binomial(link = "probit"));
+  beta.j           <- model.j$coef;
+  pro.BetaEstimate[j,c(1,2)] <- beta.j;
+  if(length(countyY) == 1){pro.BetaEstimate[j,2] <-0; beta.j[2]<-0}
+  pro.BetaEstimate[j,3] <- length(countyY)
+  z <-countyX1*beta.j[2]+beta.j[1];
+  pro.countyToProbs[[j]] <- pnorm(z);
+}
+pro.BetaEstimate
+```
+
+```{r}
+i=1
+while(i < length(counties)){
+  par(mfrow = c(2,3))
+  top <- min((i+5),length(counties))
+  for(j in i:top){
+    countyX1 <- X[data$county == counties[j]];
+    plot(countyX1, pro.countyToProbs[[j]], main = paste(counties[j],'probit'), 
+         xlab = '%Teachers with Masters', ylab = 'probability',
+         col = C[j%%6+1], pch = 20, cex = 2)
+  }
+  i <- i + 6;
+}
+```
+
+##Comments
+###It appears that some of the counties (Yakima and Clark for example) show positive linear trends between the probability and $X_1$, while others (Spokane and Cowlitz for example) show negative linear trends, while others (San Juan and Whitman for example) don't show any evident trends in the data. This supports the idea that the relationship between the predictor $X1$ (percent of teachers with a master's degree) and $Y$ (if more than 50 percent of students passed the test) differ from county to county. The probit regression method and the default method yeild similar in terms of the shape of the plots, however the probit regression method yeilds less extreme coefficients. Note the differences in the y axis in the two plots below. 
+
+##Logisic
+```{r}
+plot(BetaEstimate[,3], BetaEstimate[,2], pch = 20, cex = 2, col = 'navy',
+     main = "Least Squares Slope vs Sample Size", xlab = '#Schools', ylab = 'slope')
+abline(0,0)
+```
+
+##Probit
+```{r}
+plot(pro.BetaEstimate[,3], pro.BetaEstimate[,2], pch = 20, cex = 2, col = 'navy',
+     main = "Least Squares Slope vs Sample Size", xlab = '#Schools', ylab = 'slope')
+abline(0,0)
+```
+
+###As can be seen above, schools with more extreme slope value have small sample sizes. 
+
+
+
+###Ad hoc estimates $\hat \theta, \hat \Sigma$ for $\theta, \Sigma$ can be obtained by taking the average and covariance of $\beta_{j,MLE}$ values which have samples $\geq 10$, which is performed below. 
+
+##Logistic
+###I'll use this subset
+```{r}
+moreThan10 <- BetaEstimate[BetaEstimate[,3]>9,]
+moreThan10
+
+theta0.hat <- mean(moreThan10[,1]);
+theta1.hat <- mean(moreThan10[,2]);
+theta.hat  <- c(theta0.hat, theta1.hat);
+print("Theta.hat")
+theta.hat
+Sigma.hat <- var(moreThan10[,c(1,2)])
+print("Sigma.hat")
+print(Sigma.hat)
+```
+
+###Thus with logistic regression
+$\hat \theta = [-3.46275, 0.05070]$ and $\hat \Sigma = \begin{bmatrix}10.755821 &&-0.1793610\\-0.179361&&0.0034898 \end{bmatrix}$
+
+##Probit
+```{r}
+pro.moreThan10 <- pro.BetaEstimate[pro.BetaEstimate[,3]>9,]
+pro.moreThan10
+theta0.hat <- mean(pro.moreThan10[,1]);
+theta1.hat <- mean(pro.moreThan10[,2]);
+pro.theta.hat  <- c(theta0.hat, theta1.hat);
+print("Pro.Theta.hat")
+pro.theta.hat
+pro.Sigma.hat <- var(pro.moreThan10[,c(1,2)])
+print("pro.Sigma.hat")
+print(pro.Sigma.hat)
+```
+
+#Part c
+###With priors of 
+$$
+\theta \sim MVN(\hat \theta, \hat \Sigma), \hspace{10pt} \Sigma^{-1} \sim Wishart(4, \hat \Sigma^{-1})
+$$
+
+###their full conditional distributions are simply
+$$
+\big(\theta \mid \dots) \sim MVN\bigg((\hat \Sigma^{-1}+m\Sigma^{-1})^{-1}(\hat \Sigma^{-1}\hat \theta + m\Sigma^{-1}\bar \beta) ,(\hat \Sigma^{-1}+m\Sigma^{-1})^{-1}\bigg), \hspace{10pt} \bar \beta := \frac{1}{m}\sum^m_j\beta_j
+$$
+$$
+\Sigma \sim Wishart\bigg(4+m,\big[\hat \Sigma + S_{\theta} \big]^{-1} \bigg), \hspace{10pt} S_{\theta} := \sum^m_j(\beta_j-\theta)(\beta_j-\theta)^T
+$$
+
+###and for each $\beta_j$, $\beta_j^{(s+1)}$ can be obtained from $\beta_j^{(s)}$ and $\Sigma^{(s+1)}$ through proposing new values with 
+$$
+\beta^{*}_j \sim MVN(\beta^{(s)}_j, \Sigma^{(s+1)})
+$$
+
+###which makes the proposals symmetric, while 
+$$
+p(y_j \mid \beta_j^{(s)}, x_j) = \prod^{n_j}_i p_{i,j,(s)}^{y_{i,j}}(1-p_{i,j,(s)})^{1-y_{i,j}}
+$$
+
+###where 
+
+$$
+p_{i,j,s} = \frac{e^{\beta_j^{(s)T} x_{i,j}}}{{1+e^{\beta_j^{(s)T} x_{i,j}}}}
+$$
+
+###Thus, the acceptance probability $r$ can be calculated as 
+
+$$
+p_{j,*} = \frac{exp \{\beta_{i,j}^{(*)T}x_{i,j}\}}{1+exp \{\beta_{i,j}^{(*)T}x_{i,j}\}}
+$$
+$$
+p_{j,s} = \frac{exp \{\beta_{j}^{(s)T}x_{i,j}\}}{1+exp \{\beta_{j}^{(s)T}x_{i,j}\}}
+$$
+$$
+r = \min\bigg(1,\frac{\prod^{n_j}_i\text{dbern}(y_{i,j}, p_{i,j,*})}{\prod^{n_j}_i\text{dbern}(y_{i,j},p_{i,j,(s)})} \bigg), \hspace{10pt} \log(r) = \min\bigg(0,\sum^{n_j}_i\log(\text{dbern}(y_{i,j}, p_{i,j,*})) - \sum^{n_j}_i \log(\text{dbern}(y_{i,j},p_{i,j,(s)})) \bigg)
+$$
+
+###since
+
+$$
+\log(\text{dbern}(y,p)) = \log\big(p^y(1-p)^{1-y}) = y\log(p)+(1-y)\log(1-p) = y\log\bigg(\frac{e^{\beta^T x}}{1+e^{\beta^T x}}\bigg)+(1-y)\log\bigg(\frac{1}{1+e^{\beta^T x}}\bigg)
+$$
+
+$$
+= y\log\bigg(e^{\beta^T x}\bigg) - y\log\bigg(1+e^{\beta^T x}\bigg)+ (1-y)\log\big(1\big) - (1-y)\log\bigg(1+e^{\beta^T x}\bigg)
+$$
+$$
+= y\beta^T x-y\log(1+e^{\beta^T x}) -\log\big(1+e^{\beta^T x}\big)+y\log\big(1+e^{\beta^T x}\big)=  y\beta^T x-\log(1+e^{\beta^T x})
+$$
+
+$$
+\Rightarrow r = \min\Bigg(0, \sum^{n_j}_i\bigg(y_{i,j}\beta^T_{j,*}x_{i,j}-\log(1+e^{\beta^T_{j,*}x_{i,j}})+\log\text{dMVN}(\beta_{j,*}, \theta^{(s+1)}, \Sigma^{(s+1)})\bigg)- \sum^{n_j}_i\bigg(y_{i,j}\beta^T_{j,(s)}x_{i,j}-\log(1+e^{\beta^T_{j,(s)}x_{i,j}})+\log\text{dMVN}(\beta_{j,(s)}, \theta^{(s+1)}, \Sigma^{(s+1)})\bigg)\Bigg)
+$$
+
+##The Metropolis-Hastings Algorithm
+
+###Functions
+```{r}
+logLikeBeta <- function(Betas, x, y) {
+  z <- x*(Betas[2]) + Betas[1]
+  p <- exp(z)/(1+exp(z)) 
+  probs<- dbinom(y,1,p)
+  return (sum(log(probs)))
+}
+
+logLikeProbit <- function(Betas, x, y) {
+  z <- x*(Betas[2]) + Betas[1]
+  p <- pnorm(z) 
+  probs<- dbinom(y,1,p)
+  return (sum(log(probs)))
+}
+
+sigmaToVec <- function(Sigma){
+  a <- Sigma[1,1];
+  b <- Sigma[1,2];
+  c <- Sigma[2,2];
+  return(c(a,b,c));
+}
+vecToSigma <- function(sigmaVec){
+  Sigma <- matrix(c(sigmaVec[1],sigmaVec[2],
+                    sigmaVec[2],sigmaVec[3]), 
+                  nrow = 2, ncol = 2, byrow = T)
+  return(Sigma);
+}
+```
+
+```{r}
+library(MASS)
+library(mvtnorm)
+library(coda)
+ARBetas <- rep(0,length(counties));
+set.seed(1)
+#Data Structures
+Samples <- 5000; m <- length(counties); thinning <- 1;
+SAMPLES <- Samples*thinning;
+BETAS   <- list();
+SIGMA   <- matrix(0, nrow = 1, ncol  = 3);
+THETA   <- matrix(0, nrow = 1, ncol = 2);
+#Initial Values
+for(j in 1:m){
+  BETAS[[j]] <- matrix(0, nrow = 1, ncol = 2);
+}
+currentBetas  <- BetaEstimate[,c(1,2)]*0;
+currentBetas[,1] <- theta.hat[1]
+currentBetas[,2] <- theta.hat[2]
+SIGMA[1,]     <- sigmaToVec(Sigma.hat);
+currentSigma  <- Sigma.hat;
+THETA[1,]     <- theta.hat;
+currentTheta  <- theta.hat;
+Sigma.hat.inv <- solve(Sigma.hat)
+
+pro.BETAS   <- list();
+pro.SIGMA   <- matrix(0, nrow = 1, ncol  = 3);
+pro.THETA   <- matrix(0, nrow = 1, ncol = 2);
+#Initial Values
+for(j in 1:m){
+  pro.BETAS[[j]] <- matrix(0, nrow = 1, ncol = 2);
+}
+pro.currentBetas  <- pro.BetaEstimate[,c(1,2)]*0;
+pro.currentBetas[,1] <- pro.theta.hat[1]
+pro.currentBetas[,2] <- pro.theta.hat[2]
+pro.SIGMA[1,]     <- sigmaToVec(pro.Sigma.hat);
+pro.currentSigma  <- pro.Sigma.hat;
+pro.THETA[1,]     <- pro.theta.hat;
+pro.currentTheta  <- pro.theta.hat;
+pro.Sigma.hat.inv <- solve(pro.Sigma.hat)
+
+
+for(i in 2:SAMPLES){
+  #Update theta
+  sigma.s.inv <- solve(currentSigma);
+  #pro.sigma.s.inv <- solve(pro.currentSigma);
+  beta.mean   <- colSums(currentBetas)/m;
+  #pro.beta.mean   <- colSums(pro.currentBetas)/m;
+  t.var       <- solve(Sigma.hat.inv + m*sigma.s.inv);
+  #pro.t.var       <- solve(pro.Sigma.hat.inv + m*pro.sigma.s.inv);
+  t.mean      <- t.var%*%(Sigma.hat.inv%*%theta.hat + m*sigma.s.inv%*%beta.mean);
+  #pro.t.mean      <- pro.t.var%*%(pro.Sigma.hat.inv%*%pro.theta.hat + m*pro.sigma.s.inv%*%pro.beta.mean);
+  theta.new   <- mvrnorm(1, t.mean, t.var);
+  #pro.theta.new   <- mvrnorm(1, pro.t.mean, pro.t.var);
+  currentTheta<- theta.new;
+  #pro.currentTheta<- pro.theta.new;
+  #Update Sigma
+  S.theta <- matrix(0, nrow = 2, ncol =2)
+  #pro.S.theta <- matrix(0, nrow = 2, ncol =2)
+  for(k in 1:length(counties)){
+    S.theta <- S.theta + (currentBetas[k,]-currentTheta)%*%t(currentBetas[k,]-currentTheta);
+    #pro.S.theta <- pro.S.theta + (pro.currentBetas[k,]-pro.currentTheta)%*%t(pro.currentBetas[k,]-pro.currentTheta);
+  }
+  Sigma.new.inv <- rWishart(1, 4+m, solve(Sigma.hat + S.theta))[,,1];
+  #pro.Sigma.new.inv <- rWishart(1, 4+m, solve(pro.Sigma.hat + pro.S.theta))[,,1];
+  Sigma.new     <- solve(Sigma.new.inv);
+  #pro.Sigma.new     <- solve(pro.Sigma.new.inv);
+  currentSigma  <- Sigma.new;
+  #pro.currentSigma  <- pro.Sigma.new;
+  for(j in 1:m){ #We can itterate through these individually. 
+    countyX  <- countyToX[[j]];
+    countyY  <- countyToY[[j]];
+    beta.s   <- currentBetas[j,];
+    beta.pro <- mvrnorm(1, beta.s, 2*currentSigma);
+    logP.s   <- logLikeBeta(beta.s, countyX, countyY);
+    logP.pro <- logLikeBeta(beta.pro, countyX, countyY);
+    prior.pro<- log(dmvnorm(beta.pro,currentTheta, currentSigma));
+    prior.s  <- log(dmvnorm(beta.s,currentTheta, currentSigma));
+    logDiff  <- logP.pro - logP.s + prior.pro - prior.s;
+    logU     <- log(runif(1,0,1));
+    accept   <- (logDiff >= logU);
+    if(accept){ARBetas[j] <- ARBetas[j]+1};
+    currentBetas[j,] <- beta.pro*as.vector(accept) + beta.s*as.vector((!accept))
+  }
+  #for(j in 1:m){ #We can itterate through these individually. 
+  #  countyX  <- countyToX[[j]];
+  #  countyY  <- countyToY[[j]];
+  #  pro.beta.s   <- pro.currentBetas[j,];
+  #  pro.beta.pro <- mvrnorm(1, pro.beta.s, pro.currentSigma);
+  #  pro.logP.s   <- logLikeProbit(pro.beta.s, countyX, countyY);
+  #  pro.logP.pro <- logLikeProbit(pro.beta.pro, countyX, countyY);
+  #  pro.prior.pro<- log(dmvnorm(pro.beta.pro, pro.currentTheta, pro.currentSigma));
+  #  pro.prior.s  <- log(dmvnorm(pro.beta.s, pro.currentTheta, pro.currentSigma));
+  #  pro.logDiff  <- logP.pro - pro.logP.s + pro.prior.pro - pro.prior.s;
+  #  pro.logU     <- log(runif(1,0,1));
+  #  pro.accept   <- (pro.logDiff >= pro.logU);
+  #  pro.currentBetas[j,] <- pro.beta.pro*as.vector(pro.accept) + pro.beta.s*as.vector((!pro.accept))
+  #}
+  SIGMA  <- rbind(SIGMA,sigmaToVec(Sigma.new));
+  THETA  <- rbind(THETA,theta.new);
+  for(j in 1:m){
+    BETAS[[j]] <- rbind(BETAS[[j]],currentBetas[j,]);
+  }
+  #pro.SIGMA  <- rbind(pro.SIGMA,sigmaToVec(pro.Sigma.new));
+  #pro.THETA  <- rbind(pro.THETA, pro.theta.new);
+  #for(j in 1:m){
+  #  pro.BETAS[[j]] <- rbind(pro.BETAS[[j]],pro.currentBetas[j,]);
+  #}
+}
+print("done")
+```
+
+#Part d
+##Logistic
+```{r}
+plot(SIGMA[,1], type = 'l',col = C[1], main = 'Sigma: Intercept Variance')
+effectiveSize(SIGMA[,1])
+plot(SIGMA[,2], type = 'l',col = C[2], main = 'Sigma: Covariance')
+effectiveSize(SIGMA[,2])
+plot(SIGMA[,3], type = 'l',col = C[3], main = 'Sigma: Slope Variance')
+effectiveSize(SIGMA[,3])
+plot(THETA[,1], type = 'l',col = C[4], main = 'Theta: Intercept')
+effectiveSize(THETA[,1])
+plot(THETA[,2], type = 'l',col = C[6], main = 'Theta: Slope')
+effectiveSize(THETA[,2])
+```
+
+
+
+#Part e
+##Posterior expectation of $\beta$
+```{r}
+postBeta <- matrix(0, nrow = length(counties), ncol = 2)
+colnames(postBeta)  <- c("Beta_0,j","Beta_1,j")
+colN     <- c();
+for(j in 1:length(counties)){
+  countyB <- BETAS[[j]];
+  b0 <- countyB[,1]; b1 <- countyB[,2];
+  postBeta[j,1] <- mean(b0); postBeta[j,2] <- mean(b1);
+  colN <- c(colN,paste("Beta_", j, sep = ""));
+}
+rownames(postBeta) <- colN;
+postBeta
+```
+
+
+
+##Regression Plot Comparisons
+
+###In the plots below, the red line represents the value of $\beta_{0,j}+\beta_{1,j}$ from the estiamtes found in part b, while the blue line represents the posteior estimates of these values. Plotted in black also is my value of $\hat \theta$, which was used as the prior mean of each $\theta$. The lines are plotted over the range of $20$ to $100$, which is the range of values observed in the dataset. Plotted in the titles of each of these pots is an number which represents the number of schools sampled in this county. 
+
+```{r}
+i=1
+while(i < length(counties)){
+  par(mfrow = c(1,2))
+  top <- min((i+5),length(counties))
+  for(j in i:top){
+    countyX1 <- 20:100
+    plot(countyX1, countyX1*postBeta[j,2]+postBeta[j,1], main = paste(counties[j], "Posterior", BetaEstimate[j,3]), 
+         xlab = 'x = %Teachers with Masters', ylab = 'B0+xB1',
+         col = 'blue', type = 'l', ylim = c(-5,5), lwd = 2)
+    abline(BetaEstimate[j,1], BetaEstimate[j,2], col = 'red')
+    abline(theta.hat[1], theta.hat[2], lty =2)
+  }
+  i <- i + 6;
+}
+```
+
+##Comments
+###In the plots above, some counties have red (old) and blue (new) lines which look quite similar, some have lines that are different but only slightly so, and some have lines which are extremely different (in some cases, the red line is not even visible on the plot. This is due to the extreme intercept values $\beta_{0,j}$ for these estimates). One may notice that for plots with lines which are very different from each other, the sample sizes tent to be quite small, while those with large sample sizes tent ot have simlar lines. Also note that for values with small sample sizes, the blue lines and the black dashed line tend to look quite similar. This is due to shinkage. 
+
+#Part f
+
+###Below, the black dashed line represents my ad hoc estimates calculated in part bfor these values. 
+
+```{r}
+library(MCMCpack)
+set.seed(10)
+priorTheta <- rmvnorm(Samples, theta.hat, Sigma.hat)
+priorSigma <- matrix(0, nrow = Samples, ncol = 3);
+priorMean <- solve(Sigma.hat);
+for(i in 1:Samples){
+   priorSigma[i,]<- sigmaToVec(solve(rWishart(1, 4, priorMean)[,,1]));
+}
+
+for(i in 1:2){
+  par(mfrow = c(2,1))
+  plot(density(THETA[,i]), main = paste('Posteior Theta', i-1), 
+       xlim =c(min(priorTheta[,i]),max(priorTheta[,i])))
+  polygon(density(THETA[,i]), col=rgb(.5*i,0,1,.4), border="black")
+  abline(v=theta.hat[i], lwd = 3, col = rgb(0,0,0,.8), lty = 2)
+  plot(density(priorTheta[,i]), main = paste('Prior Theta', i-1))
+  polygon(density(priorTheta[,i]), col=rgb(.5*i,0,1,.4), border="black")
+  abline(v=theta.hat[i], lwd = 3, col = rgb(0,0,0,.8), lty = 2)
+}
+
+
+a1 <- quantile(priorSigma[,1], c(.05, .95))
+a2 <- quantile(priorSigma[,2], c(.05, .95))
+a3 <- quantile(priorSigma[,3], c(.05, .95))
+par(mfrow = c(2,1))
+plot(density(SIGMA[,1]), main = paste('Posteior Intercept Var'))
+polygon(density(SIGMA[,1]), col=rgb(0,.2,1,.4), border="black")
+abline(v=Sigma.hat[1,1], lwd = 3, col = rgb(0,0,0,.8), lty = 2)
+plot(density(priorSigma[,1]), main = paste('Prior Intercept Var'),
+     xlim=c(a1[1], a1[2]))
+polygon(density(priorSigma[,1]), col=rgb(0,.2,1,.4), border="black")
+abline(v=Sigma.hat[1,1], lwd = 3, col = rgb(0,0,0,.8), lty = 2)
+
+par(mfrow = c(2,1))
+plot(density(SIGMA[,2]), main = paste('Posteior Covariance'))
+polygon(density(SIGMA[,2]), col=rgb(.8,.8,1,.4), border="black")
+abline(v=Sigma.hat[1,2], lwd = 3, col = rgb(0,0,0,.8), lty = 2)
+plot(density(priorSigma[,2]), main = paste('Prior Covariance'),
+     xlim=c(a2[1], a2[2]))
+polygon(density(priorSigma[,2]), col=rgb(.8,.8,1,.4), border="black")
+abline(v=Sigma.hat[1,2], lwd = 3, col = rgb(0,0,0,.8), lty = 2)
+
+par(mfrow = c(2,1))
+plot(density(SIGMA[,3]), main = paste('Posteior Slope Var'))
+polygon(density(SIGMA[,3]), col=rgb(0,.8,.5,.4), border="black")
+abline(v=Sigma.hat[2,2], lwd = 3, col = rgb(0,0,0,.8), lty = 2)
+plot(density(priorSigma[,3]), main = paste('Prior Slope Var'),
+     xlim=c(a3[1], a3[2]))
+polygon(density(priorSigma[,3]), col=rgb(0,.8,.5,.4), border="black")
+abline(v=Sigma.hat[2,2], lwd = 3, col = rgb(0,0,0,.8), lty = 2)
+```
+
+###Given the size of the spread of my variences of my $\Sigma$ values, I conclude that there is reasonable evidence to believe that there are differences between the slopes and intercepts across groups. 
+
+
+
+

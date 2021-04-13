@@ -1,0 +1,172 @@
+---
+title: 'MATH 342: Homework10'
+author: "Samuel Eure"
+date: "4/22/2018"
+output: pdf_document
+fontsize: 20pt
+geometry: margin=0.5in
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Problem 1
+##Part (a):  By Hand
+```{r}
+n = c(83,116,90,285)
+p = c(.104496,0.242205,0.1969,0.4564)
+m = p*574
+Q = (n-m)^2/m
+'Chi-squared value: '
+sum(Q)
+'p_value'
+1 - pchisq(19.36073,1)
+```
+
+##Part (b): With R
+```{r}
+cancer = c(83,116,90,285)
+df = data.frame(matrix(data = cancer,nrow = 2, byrow = TRUE))
+colnames(df) = c('LW', 'DoesNotLW')
+rownames(df) = c('patient', 'control')
+df
+chisq.test(df,correct = FALSE)
+```
+###R's output agrees with my hand written values.  Again, I reject $H_0$ with a p-value of 1.08e-05.
+
+##Part (c)
+###Product Multinomial Sampling. The researchers sampled 199 people from a population of non-smoking lung cancer patients (perhaps all they had access too) and are then asking whether this population lived with a smoker. Then the researchers sampled 375 people from a separate population, a population which only contained healthy people, and then asked whether each individual lived with a smoker or not. Thus, the sum of each row is fixed while the sum of the columns is not fixed.  Given this study design, we are asking: 'Does the healthy population have the same distribution of second hand smokers as the population of non-smoking lung cancer patients?'
+
+#Problem 2
+##The data
+###The $H_0$ here is that the chance you drink coffee and the chance you are a male or female are independent. We sampled from the general population and then asked whether or not a person was a male/female and if the person was a coffeeDrinker/NonCoffeeDrinkersince. In addition to the fact that we can always obtain more men and women, and we live in a world where coffee supplies are essentially unlimited, we are working with Full Multinomial Sampling. 
+```{r}
+coffee = c(11,15,10,11)
+CoffeeDf = data.frame(matrix(data = coffee,nrow = 2, byrow = TRUE))
+colnames(CoffeeDf) = c('Female', 'Male')
+rownames(CoffeeDf) = c('NoCoffee','drinksCoffee')
+CoffeeDf
+chisq.test(CoffeeDf,correct = FALSE)
+```
+###Given this evidence, I fail to reject $H_0$ (p-value = 0.7158). There does not appear to be an effect on the chances you are a coffee drinker depending on whether you are a male or female.  
+
+#Problem 3
+##The Data
+```{r}
+blood = c(78,85,58,23,12,25,10,9)
+bloodDf = data.frame(matrix(data = blood,nrow = 2, byrow = TRUE))
+colnames(bloodDf) = c('O',"A",'B','AB')
+rownames(bloodDf) = c('Rh.(+)','Rh.(-)')
+bloodDf
+```
+##Part (a)
+###The sampling is full multinomial sampling since we obtained a random number of people for each blood type and a random distribution of Rh status for each blood type (i.e. neither the column totals or row totals was fixed).  
+
+##Part (b)
+```{r}
+chisq.test(bloodDf, correct = FALSE)
+```
+###Given my p value of 0.1405, I fail to reject the null hypothesis that the two groupings are independent. Thus, it is inconclusive whether blood type is independent of Rh status.  
+
+##Part (c)
+###The p value should decrease since the uncertainty related to the distribution of Rh status should decrease.  This is reflected in the fact that our chi square value should increase if we double everything since the difference between the expected number of Rh+ people per blood type and the observed should double as well, leading to a chi square statistic twice the value, as shown below. 
+```{r}
+blood = c(78,85,58,23,12,25,10,9)*2
+bloodDf = data.frame(matrix(data = blood,nrow = 2, byrow = TRUE))
+colnames(bloodDf) = c('O',"A",'B','AB')
+rownames(bloodDf) = c('Rh.(+)','Rh.(-)')
+chisq.test(bloodDf, correct = FALSE)
+```
+###In fact, even if the data we collected was as shown below, we could still reject our null hypothesis if we multiply our data by 500.  
+```{r}
+blood = c(80,80,80,80,20,20,20,19)
+bloodDf = data.frame(matrix(data = blood,nrow = 2, byrow = TRUE))
+colnames(bloodDf) = c('O',"A",'B','AB')
+rownames(bloodDf) = c('Rh.(+)','Rh.(-)')
+bloodDf
+bloodDf = blood*500
+chisq.test(bloodDf, correct = FALSE)
+```
+
+#Problem 5
+##Part (a)
+###If 'Beers' is defined as the number of beers consumed, my linear model is:
+$$
+BAC = \beta_0 + \beta_{beers}\times Beers
+$$
+
+```{r cars}
+bac <-get(load('bac_data.RData'))
+attach(bac)
+beerModel = lm(BAC~ Beers, data = bac)
+beerModel$coefficients
+```
+###The equation from my beerModel is:
+
+$$
+BAC = -0.01270060 + 0.01796376\times Beers
+$$
+
+```{r}
+plot(Beers, BAC, main = 'BAC vs. Beers')
+abline(beerModel)
+```
+
+##Part (b)
+
+###The null hypothesis is 
+$$
+H_0: \beta_{beers} = 0
+$$
+$$
+H_1: \beta_{beers} \neq 0
+$$
+
+###which  means under the null, a person's mean BAC reading is independent of the number of beers they  have consumed.  
+
+###Given the the summary of my linear model:
+```{r}
+summary(beerModel)
+```
+
+### there is statistically significant evidence ($t_{df = 14} = 7.480$; p-value = 2.97e-06) that the coefficient associated with beers consumed is nonzero. Thus, I reject my $H_0$ and predict that an increases of one beer in beer consumption will lead to an average increases in BAC level by 0.017964.  
+
+##Part (c)
+```{r}
+confint(beerModel)
+```
+
+###I am 95% confident that an increase of one beer in beer consumption will lead to a mean BAC increase between 0.01281262 and 0.02311490. (i.e. I am 95% confident the slope of my least squares regression line is beteen 0.01281262 and 0.02311490). 
+
+##Part (d)
+```{r}
+predict(beerModel,data.frame(Beers = 6), interval = 'confidence')
+```
+###I am 95% confident that the mean BAC of students who have consumed 6 beers will be between 0.08253019 and 0.1076337. 
+
+##Part (e)
+###First, the confidence interval of a mean at point $x_i$ is 
+$$
+\left[mean(x_i) - F^{-1}_{t_{n-2}}(0.975) \times \tau_i,  mean(x_i) + F^{-1}_{t_{n-2}}(0.975) \times \tau_i\right]
+$$
+
+###where
+
+$$
+\tau_i = s^2\sqrt{ \frac{1}{n} + \frac{(\bar{x}- x_i)^2}{\sum^{n}_{k=1}(x_k - \bar{x})^2} }
+$$
+
+###Thus, a = $F^{-1}_{t_{n-2}}(0.975)$.  It makes sense that the interval for a new predictor would now include 
+
+$$
+\sqrt{s^2+\tau_i^2}
+$$
+
+since this takes into consideration that values of $x_i$ are distributed around their mean value of $\bar{x_i}$ with an estimated standard devation of $s^2$. i.e., since is approximately $x_i \sim \mathcal{N}(\bar{x},s^2)$, then the variance of a single predictor measurement should be the sum of $s^2$ and $\tau^2$.  Thus, the new approximation for standard deviation for a single value is $\sqrt{s^2 + \tau^2}$.
+
+##Part (f)
+```{r}
+predict(beerModel,data.frame(Beers = 6), interval = 'prediction')
+```
+###I am 95% confident that the the BAC of a student who has consumed 6 beers will be between 0.04947909 and 0.1406848. 
