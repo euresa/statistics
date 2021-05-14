@@ -1,3 +1,3 @@
-This Pythons script can be used to scrape Wikipedia pages for popular words and hyperlinks. 
+This Pythons script scrapes Wikipedia pages for natural text and hyperlinks. 
 
-The script requires a Wikipedia link as input and will print out the title of each section, print out the most frequent words in the section that are not considered “stop words”, and lists every hyperlink in the section. 
+It also demonstrates how this data can be stored in a dataframe and how natural language processing can be carried out on the data. 
