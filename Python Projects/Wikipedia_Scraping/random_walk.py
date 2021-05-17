@@ -8,8 +8,7 @@ this script indefinitely on it.
 
 from random import shuffle
 
-import wiki
-from wiki import WikiScraper
+from wiki import WikiScraper, combine
 
 
 new_subject = WikiScraper(subject='World History')
