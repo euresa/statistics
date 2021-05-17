@@ -29,4 +29,3 @@ while True:
         new_subject = WikiScraper(link=old_links[idx])
         links = combine(new_subject.hyperlinks)
     old_links = links.copy()
-    print(new_subject.subject)
