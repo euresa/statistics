@@ -1,8 +1,11 @@
 import re
-import spacy
+
+
 import requests
+import spacy
 import pandas as pd
 from bs4 import BeautifulSoup
+
 
 class WikiScraper:
     '''A class used for scraping Wikipedia page data. Organizes natural language on page and hyperlinks.'''
