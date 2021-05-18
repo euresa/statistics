@@ -2,7 +2,7 @@ import re
 
 
 import requests
-import spacy
+
 import pandas as pd
 from bs4 import BeautifulSoup
 

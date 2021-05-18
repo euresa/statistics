@@ -10,11 +10,11 @@ from random import shuffle
 
 from wiki import WikiScraper, combine
 
-
+N = 100
 new_subject = WikiScraper(subject='World History')
 old_links = combine(new_subject.hyperlinks)
 f = open("history.txt", "w")
-while True:
+for _ in range(N):
     sub = new_subject.subject
     print(sub)
     f.write(sub)
