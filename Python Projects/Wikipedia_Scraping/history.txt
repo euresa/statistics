@@ -794,4 +794,207 @@ Golden eagle, 238
 California, 648
 2016 United States presidential election, 488
 Gary Johnson, 211
-American Civil Liberties Union
+American Civil Liberties Union, 443
+McCollum v. Board of Education, 14
+Hugo Black, 277
+Textualism, 22
+Tennessee Valley Authority v. Hill, 22
+National Environmental Policy Act, 50
+Rachel Carson, 211
+Velsicol Chemical Corporation, 17
+Polybrominated biphenyl, 53
+T cell, 117
+Innate immune system, 133
+Antigen presentation, 41
+Wikipedia:Citation needed, 41
+Lysosome, 83
+Phagocytosis, 62
+Macrophage, 103
+Transforming growth factor beta, 60
+Peptide, 23
+Antioxidant, 230
+DNA repair, 225
+Apoptosis, 129
+Lymphoma, 54
+Positron emission tomography, 124
+Metastasis, 100
+Thyroid cancer, 41
+Sorafenib, 38
+Hepatocellular carcinoma, 98
+Interventional radiology, 62
+Aneurysm, 57
+Asymptomatic, 10
+Multiple sclerosis, 240
+Infertility, 52
+DNA, 388
+Data corruption, 34
+Software bug, 77
+Defensive programming, 10
+Computer security, 258
+Secure coding, 10
+Buffer overflow, 81
+Java (software platform), 153
+Set-top box, 100
+Canada, 638
+Equestrianism, 137
+Humane Society of the United States, 135
+Puppy mill, 39
+Queensland, 452
+Queensland state schools, 11
+Government of New South Wales, 14
+New South Wales Legislative Assembly, 22
+Victorian Legislative Council, 48
+South Australian Legislative Council, 103
+Dignity Party (South Australia), 67
+South Australian Legislative Council, 103
+Western Australian Legislative Council, 35
+New South Wales Legislative Council, 30
+Neville Wran, 53
+Pat Hills, 21
+Sydney, 855
+Shade tree, 12
+Patio, 14
+Dye, 105
+Law, 419
+Roman law, 101
+Bürgerliches Gesetzbuch, 29
+Civil law (legal system), 119
+Law of Japan, 139
+House of Peers (Japan), 21
+Social structure of China, 60
+Chinese language, 279
+Kanji, 205
+Ateji, 21
+Asia, 388
+Antarctica, 394
+Transantarctic Mountains, 79
+Warren B. Hamilton, 23
+Thorium, 296
+Zirconium, 129
+Apollo program, 278
+Apollo Lunar Module, 91
+Trans-lunar injection, 46
+GRAIL, 21
+Maria Zuber, 12
+Johns Hopkins University, 190
+Black, 339
+Duke of Windsor, 11
+Coat of arms, 116
+Italy, 1553
+Giuseppe Peano, 41
+Space-filling curve, 39
+Osgood curve, 11
+William Fogg Osgood, 17
+Annals of Mathematics, 22
+Zoltán Szabó (mathematician), 11
+3-manifold, 218
+Grigori Perelman, 96
+Pennsylvania, 566
+Kennywood, 41
+George Washington, 481
+George Washington University, 467
+The Exorcist, 91
+The Boondocks (season 2), 33
+Terry Crews, 59
+The Master Key System, 21
+Rosicrucianism, 87
+Heinrich Khunrath, 20
+Prima materia, 12
+Proteus, 107
+Lion, 278
+Monkey, 103
+Pet monkey, 41
+List of Oz books, 29
+Elphaba, 34
+Deciduous teeth, 53
+Philippines, 553
+Neoclassical architecture, 309
+Nova Scotia, 427
+Acadian Civil War, 26
+Saint John, New Brunswick, 121
+New Brunswick Route 1, 33
+Toll road, 142
+Shunpiking, 82
+Wales, 745
+Wales national rugby union team, 149
+Norman Biggs, 51
+Swansea RFC, 18
+Richard Lancaster, 14
+Swansea University, 74
+Geographic coordinate system, 91
+Quaternary glaciation, 116
+Moraine, 32
+Rock flour, 16
+Meltwater, 24
+Los Angeles, 542
+Reconstructionist Judaism, 65
+Religious naturalism, 39
+Pantheism, 140
+Abraham Lincoln, 335
+Hearsay, 16
+R v Baker, 15
+Hearsay in English law, 14
+Testimony, 50
+Frederick Douglass, 220
+Rochester, New York, 334
+Canada, 638
+Margaret Atwood, 210
+PEN International, 25
+Canberra, 393
+National Portrait Gallery (Australia), 11
+Tom Roberts, 50
+Fake or Fortune?, 52
+PBS, 270
+BBC News, 272
+CBS News, 93
+Christian Broadcasting Network, 100
+Voice of America, 206
+Yorktown Heights, New York, 19
+Yorktown, Virginia, 76
+Elaine Luria, 64
+Hampton Roads, 524
+Christopher Newport University, 22
+North American Interfraternity Conference, 18
+Public relations, 51
+Internet, 409
+Internet Engineering Task Force, 33
+IP Multimedia Subsystem, 43
+H.323, 34
+Multicast, 46
+Xcast, 12
+Router (computing), 71
+Internet service provider, 90
+Supplemental Nutrition Assistance Program, 110
+Walmart, 351
+Ellen DeGeneres, 158
+Greyson Chance, 74
+CBS, 872
+Gary Collins (actor), 48
+Airport (1970 film), 40
+Gone with the Wind (film), 225
+Irving Thalberg, 176
+King Vidor, 390
+Jazz Age, 82
+James Reese Europe, 35
+Blues, 514
+Sam Cooke, 93
+Rock and roll, 253
+Encyclopædia Britannica, 221
+Albert Einstein, 350
+Humboldt University of Berlin, 152
+Otto von Bismarck, 235
+Primus inter pares, 84
+Mao Zedong, 400
+Yang Changji, 16
+Hundred Days' Reform, 52
+Regent, 28
+Regenten, 21
+Autonomy, 93
+Medicine, 282
+Alexander Fleming, 103
+South Kensington, 58
+Albertopolis, 13
+South Kensington, 58
+Roman Polanski, 269
+Johnny Depp, 313
+Peter Lorre, 129
