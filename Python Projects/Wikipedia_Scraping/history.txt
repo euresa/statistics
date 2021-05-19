@@ -374,3 +374,424 @@ Operation Torch, 147
 Allied invasion of Sicily, 305
 Brigadier (United Kingdom), 20
 James II of England, 192
+Hilaire Belloc, 105
+Freemasonry, 180
+Holy Royal Arch, 45
+Norway, 989
+Battle of Drøbak Sound, 67
+Birger Eriksen, 19
+Battle of Drøbak Sound, 67
+Oslo, 414
+Henrik Ibsen, 104
+Dresden, 361
+2013 European floods, 71
+Inn (river), 37
+Tyrol (state), 78
+Eastern Alps, 133
+Valais, 246
+Zermatt, 81
+Matterhorn, 215
+Lord Francis Douglas, 31
+John Douglas, 9th Marquess of Queensberry, 50
+Old Bailey, 33
+Common Serjeant of London, 13
+Vanity Fair (British magazine), 52
+William Gillette, 112
+Undershaw, 38
+Jane Austen, 153
+A Memoir of Jane Austen, 15
+Bath, Somerset, 502
+River Severn, 279
+Severn Tunnel, 56
+Aluminium, 315
+Anthraquinone, 18
+Functional group, 22
+Fluorine, 294
+Glass etching, 11
+Zwickau, 89
+Flossenbürg concentration camp, 89
+Dietrich Bonhoeffer, 103
+Norway, 989
+Rihanna, 468
+Rolling Stone, 127
+Goldman Sachs, 313
+Stephen Friedman (PFIAB), 13
+President's Intelligence Advisory Board, 20
+George W. Bush, 564
+Mahmoud Abbas, 106
+Doha, 242
+Bahrain, 530
+Basra, 128
+Shah, 41
+Basileus, 137
+Roman consul, 84
+Cicero, 262
+Vestal Virgin, 89
+Roman mythology, 84
+Peregrinus (Roman), 22
+Pliny the Younger, 49
+Umbria, 104
+Roman Republic (18th century), 29
+Battle of Mondovì, 26
+André Masséna, 85
+Battle of Fuentes de Oñoro, 71
+Battle of Fuentes de Oñoro, 71
+Division (military), 194
+Infantry, 136
+Amphibious warfare, 427
+QF 18-pounder gun, 92
+Defence Forces (Ireland), 115
+Standing army, 71
+Kshatriya, 16
+Nāga, 155
+Samudra manthan, 43
+Garuda, 93
+Indonesia, 564
+Pattimura, 18
+Maluku Islands, 90
+Western New Guinea, 148
+Tidore, 22
+Halmahera, 41
+Charles Darwin, 448
+Robert FitzRoy, 127
+Frigate, 208
+French ship Diadème (1756), 14
+François Joseph Paul de Grasse, 48
+Aaron Burr, 181
+John Adams, 316
+United States Declaration of Independence, 308
+Colonial government in the Thirteen Colonies, 72
+Indentured servitude, 97
+Transport, 254
+Debt, 107
+United States Treasury security, 39
+Mutual fund, 40
+2003 mutual fund scandal, 16
+Martin Act, 12
+Securities fraud, 52
+50 Cent, 280
+How to Rob, 19
+Shut 'Em Down (album), 71
+Sticky Fingaz, 46
+Bloomfield, New Jersey, 191
+Chris Christie, 268
+Advisory Committee of U.S. Attorneys, 11
+Edward H. Levi, 35
+Legal Services Corporation, 45
+Ronald Reagan, 544
+Fidel Castro, 425
+Atheism, 350
+Vladimir Lenin, 386
+World government, 397
+Eurasian Economic Community, 28
+Verkhovna Rada, 103
+2012 Ukrainian parliamentary election, 169
+Party of Regions, 171
+Electoral fraud, 138
+United States Statutes at Large, 16
+United States Declaration of Independence, 308
+Nathaniel Macon, 58
+Kemp P. Battle, 16
+North Carolina General Assembly, 45
+North Carolina Provincial Congress, 29
+Josiah Martin, 32
+Samuel Martin (Secretary to the Treasury), 20
+Sir Henry Martin, 1st Baronet, 11
+Seven Years' War, 373
+Banda Oriental, 49
+Rio Grande do Sul, 294
+Petrified wood, 38
+Oxidation state, 92
+Organic compound, 84
+Carbon nanotube, 129
+Field electron emission, 130
+Schrödinger equation, 154
+Four-vector, 130
+Determinant, 175
+Parallelepiped, 29
+Tetrahedron, 156
+Cross product, 143
+Commutator, 41
+Clifford algebra, 124
+Polarization identity, 26
+Parallelogram law, 10
+Norm (mathematics), 94
+Algebra over a field, 45
+Covariance and contravariance of vectors, 57
+Adjective, 67
+Spanish grammar, 47
+Voseo, 19
+Present perfect, 18
+Uses of English verb forms, 222
+-ing, 43
+Dutch language, 386
+West Germanic languages, 42
+Dialect, 210
+Partitions of Poland, 163
+Szlachta, 418
+Lease, 64
+Personal property, 15
+Negotiable instrument, 41
+Market liquidity, 28
+Market liquidity, 28
+Wikipedia:Citation needed, 28
+Open market operation, 20
+Federal Reserve, 172
+Barack Obama, 588
+United States Senate, 154
+Louisiana primary, 13
+Kathleen Blanco, 70
+Russel L. Honoré, 57
+Lauren Boebert, 106
+Beto O'Rourke 2020 presidential campaign, 52
+Stacey Abrams, 111
+Nonprofit organization, 37
+Top-level domain, 99
+.sk, 264
+.ro, 264
+.gt, 264
+.sr, 264
+.nc, 264
+.dj, 264
+.tf, 264
+.gd, 267
+.pm, 264
+.si, 271
+.dd, 264
+.zw, 264
+.vu, 264
+.pm, 264
+.gh, 267
+.tk, 283
+.mv, 264
+.dk, 280
+.ng, 266
+.is, 269
+.md, 267
+.bf, 264
+.je, 273
+.pm, 264
+.cr, 264
+.co, 275
+.la, 293
+.gw, 264
+.fi, 264
+.gq, 268
+.as, 272
+.cz, 271
+.uk, 295
+.er, 264
+.sj, 277
+.tf, 264
+.gl, 264
+.no, 323
+Norwegian krone, 36
+List of Norwegian monarchs, 11
+Battle of Fitjar, 10
+Valhalla, 101
+Heimskringla, 39
+Frederick VI of Denmark, 60
+Gustav I of Sweden, 85
+Robin Hood, 271
+Campsall, 23
+West Riding of Yorkshire, 73
+Geographic coordinate system, 91
+Equator, 76
+Sunrise, 32
+Azimuth, 40
+Triangulation, 20
+Navigation, 150
+Americas, 293
+New World, 141
+Biology, 949
+Leaf, 176
+Poison, 87
+Carbon monoxide, 246
+Nickel, 235
+Beta particle, 54
+Positron, 59
+Paul Dirac, 148
+Commutative property, 49
+Cross product, 143
+Curl (mathematics), 55
+Covariant derivative, 60
+Jan Arnoldus Schouten, 53
+Centrum Wiskunde & Informatica, 37
+Guido van Rossum, 41
+Microsoft, 316
+Microsoft Excel, 103
+DNA, 388
+Helix, 28
+Circle of fifths, 88
+Equal temperament, 99
+Mantle Hood, 52
+University of Amsterdam, 192
+Human geography, 63
+Royal Geographical Society, 69
+Edmund Hillary, 148
+Norman Hardie, 33
+Hiking, 164
+Spain, 971
+Sara Montiel, 22
+Run of the Arrow, 29
+Charles Bronson, 250
+Breast cancer, 192
+Anastrozole, 107
+Bone pain, 12
+Cannabinoid receptor type 1, 79
+Hypothalamus, 109
+Appetite, 44
+Sibutramine, 64
+Dysgeusia, 109
+Lithium carbonate, 56
+Protein kinase C, 27
+Calpain, 55
+Leucine, 43
+Branched-chain amino acid aminotransferase, 10
+Redox, 117
+Photosynthesis, 256
+Body plan, 26
+Precambrian, 49
+Archean, 83
+Hadean, 28
+History of Earth, 399
+Environmentalism, 216
+John Ruskin, 452
+Adam Smith, 166
+Marginalism, 124
+Occam's razor, 195
+Brownian motion, 107
+Diffusion equation, 16
+Heat equation, 100
+Dirac delta function, 231
+Homogeneous function, 33
+Partial derivative, 41
+Total derivative, 18
+Linear map, 53
+Associative algebra, 48
+Lie algebra, 81
+Special unitary group, 99
+Representation theory of SU(2), 43
+William Rowan Hamilton, 116
+Michael Faraday, 165
+The Times, 163
+News UK, 53
+Rupert Murdoch, 303
+Tony Blair, 370
+Iraq War, 318
+Dominique Reynié, 19
+American Jewish Committee, 66
+Cyrus Adler, 41
+Syria, 528
+Syrian Railways, 51
+Turkey, 999
+Ottoman constitution of 1876, 69
+Slavic languages, 146
+Nasal vowel, 44
+Nasal consonant, 86
+Areal feature, 12
+Tree model, 100
+Franz Bopp, 46
+Bhagavad Gita, 180
+Ramanuja, 72
+Sri Vaishnavism, 111
+Ranganathaswamy Temple, Srirangam, 136
+Malik Kafur, 60
+Mausoleum, 25
+Mausoleum at Halicarnassus, 74
+Pliny the Elder, 122
+Roman navy, 283
+Plebeian Council, 20
+Roman Republic, 576
+Census, 77
+Nomarch, 14
+Twelfth Dynasty of Egypt, 39
+Sobekneferu, 43
+Northern Mazghuna pyramid, 12
+Merneferre Ay, 37
+Alan Gardiner, 33
+Egypt Exploration Society, 28
+Dirk Obbink, 60
+Greek language, 172
+Biomechanics, 119
+Aquatic locomotion, 118
+Naegleria fowleri, 19
+Flagellate, 19
+Unicellular organism, 84
+Protocell, 75
+Lipid bilayer, 131
+Synthetic biology, 190
+Recombinant DNA, 37
+Stanford University, 203
+Stanford Shopping Center, 16
+Crate & Barrel, 60
+United Arab Emirates, 530
+Salsali Private Museum, 11
+Dubai, 364
+Rugby union, 311
+Rugby union in Georgia, 56
+Russia, 884
+Scythia, 52
+Thracians, 202
+Tanagra, 53
+Greek National Road 1, 24
+Thebes, Greece, 87
+Athens, 627
+Loutraki, 17
+Greek language, 172
+Turkish language, 197
+Possessive affix, 25
+Genitive case, 57
+Adjectival noun (Japanese), 15
+Subject (grammar), 23
+Argument (linguistics), 26
+Ditransitive verb, 10
+Transitive verb, 12
+Construction grammar, 60
+Morphology (linguistics), 51
+Lexicon, 31
+Concept, 56
+Kurt Gödel, 113
+Theism, 20
+Brahman, 108
+Shiva, 235
+Shiva Sahasranama, 12
+God, 292
+The Creation of Adam, 73
+Veni Creator Spiritus, 43
+Religious institute, 127
+Enclosed religious orders, 13
+Religious institute, 127
+Anchorite, 26
+Hilarion, 16
+History of Gaza, 236
+Operation Summer Rains, 71
+Latakia, 150
+Alexandria, 242
+Bibliotheca Alexandrina, 49
+Grapheme, 40
+Writing system, 173
+Written language, 10
+Diglossia, 65
+Ioannis Psycharis, 28
+Megali Idea, 105
+Anatolia, 243
+Scythians, 294
+Zoroastrianism, 342
+Ahura Mazda, 59
+Achaemenid Empire, 676
+Pericles, 120
+Euboea, 126
+Attica, 142
+Heruli, 157
+Narses, 41
+Battle of Sena Gallica (551), 16
+Sicily, 731
+Syracuse, Sicily, 135
+Frederick II, Holy Roman Emperor, 243
+Gyrfalcon, 105
+Golden eagle, 238
+California, 648
+2016 United States presidential election, 488
+Gary Johnson, 211
+American Civil Liberties Union
