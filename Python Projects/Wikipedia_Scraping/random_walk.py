@@ -19,7 +19,7 @@ for _ in range(N):
     print(sub)
     f.write(sub)
     f.write('\n')
-    shuffle(old_links)&
+    shuffle(old_links)
     idx = 0
     new_subject = WikiScraper(link=old_links[idx])
     links = combine(new_subject.hyperlinks)
