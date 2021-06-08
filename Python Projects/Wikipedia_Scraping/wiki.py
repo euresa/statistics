@@ -4,11 +4,14 @@ import requests
 import pandas as pd  # type: ignore
 from bs4 import BeautifulSoup  # type: ignore
 
+
 class WikiScraper:
     """A class used for scraping Wikipedia page data. Organizes natural language on
     a Wikipedia page and creates a list of the hyperlinks present on the page."""
 
-    def __init__(self, subject: str="", link: str="", printing: bool=False) -> None:
+    def __init__(
+        self, subject: str = "", link: str = "", printing: bool = False
+    ) -> None:
         self.hyperlinks: list = []
         self.para_list: list = []
         self.section_headers: list = []
@@ -23,7 +26,7 @@ class WikiScraper:
         else:
             print("Please provide a 'subject' or 'link' argument.")
 
-    def _get_wiki_data(self, HTML_LINK: str, printing: bool=False) -> None:
+    def _get_wiki_data(self, HTML_LINK: str, printing: bool = False) -> None:
         """Takes in a Wikipedia link and returns the natural language paragraphs,
         section titles, and hyperlinks found in the document.
         """
@@ -77,7 +80,7 @@ class WikiScraper:
 def _make_wiki_link(subject: str) -> str:
     """Takes in a string containing a subject (e.g. Python, Cats, Russia, etc.) and
     returns the related Wikipedia page link to the subject.
-    
+
         example:
         >>> _make_wiki_link('Statistics')
         https://en.wikipedia.org/wiki/Statistics
@@ -86,7 +89,7 @@ def _make_wiki_link(subject: str) -> str:
     return link
 
 
-def _get_soup_doc(HTML_LINK: str, parser: str="html.parser") -> BeautifulSoup:
+def _get_soup_doc(HTML_LINK: str, parser: str = "html.parser") -> BeautifulSoup:
     """Takes in an html link and returns a BeautifulSoup document."""
     response = requests.get(HTML_LINK)
     soup_doc = BeautifulSoup(response.content, "html.parser")
@@ -121,11 +124,11 @@ def _get_indices(soup: BeautifulSoup, string_elements: list) -> list:
 def _get_index(text: str, element: str) -> int:
     """Attempts to get the index of an element. Returns -1 if not present
 
-        example:
-            >>> _get_index("hello world", "w")
-            6
-            >>> _get_index("hello world", "z")
-            -1
+    example:
+        >>> _get_index("hello world", "w")
+        6
+        >>> _get_index("hello world", "z")
+        -1
     """
     try:
         idx = text.index(element)
@@ -137,9 +140,9 @@ def _get_index(text: str, element: str) -> int:
 def combine(lists):
     """Combines a list of lists into one list to return.
 
-        example:
-        >>>combine([[1, 2, 3], [4, 5, 6], [7], [8, 9]])
-        [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    example:
+    >>>combine([[1, 2, 3], [4, 5, 6], [7], [8, 9]])
+    [1, 2, 3, 4, 5, 6, 7, 8, 9]
     """
     combo = []
     for list_ in lists:
@@ -152,7 +155,9 @@ def _collect_pattern_pairs(text: str, start_char: str, end_char: str) -> list:
     collection = []
     while _get_index(text, start_char) != -1:
         start: int = _get_index(text, start_char)
-        end: int = _get_index(text[start:], end_char) + start  # make sure end is after start
+        end: int = (
+            _get_index(text[start:], end_char) + start
+        )  # make sure end is after start
         collection.append(text[start : end + len(end_char)])
         text = text[end + len(end_char) :]
     return collection
@@ -180,7 +185,9 @@ def _remove_pattern_pair(text: str, start_char: str, end_char: str) -> str:
     """Removes all text between the start_char and end_char and returns remaining text."""
     while _get_index(text, start_char) != -1:
         start: int = _get_index(text, start_char)
-        end: int = _get_index(text[start:], end_char) + start  # make sure end is after start
+        end: int = (
+            _get_index(text[start:], end_char) + start
+        )  # make sure end is after start
         text = text[:start] + text[end + len(end_char) :]
     return text
 

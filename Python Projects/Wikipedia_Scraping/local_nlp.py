@@ -2,7 +2,7 @@
 Various functions for performing natural language processing with
 spaCy objects.
 """
-import pandas # type: ignore
+import pandas  # type: ignore
 
 
 def _remove_punctuation(words: list) -> list:
@@ -28,7 +28,7 @@ def _remove_punctuation(words: list) -> list:
     return no_punc
 
 
-def _get_top_n_strings(str_list: list, n: int=3) -> list:
+def _get_top_n_strings(str_list: list, n: int = 3) -> list:
     """Finds most popular n strings in a string list. Returns a list of tuples (word, count)."""
     word_df: pandas.DataFrame = pandas.DataFrame({"words": str_list})
     word_vc = word_df.value_counts()
@@ -36,7 +36,7 @@ def _get_top_n_strings(str_list: list, n: int=3) -> list:
     return top_strings
 
 
-def _remove_stop_words(doc, lemmas: bool=False) -> list:
+def _remove_stop_words(doc, lemmas: bool = False) -> list:
     """Removes "stop words" (common words like "is", "but", "and") from list of words."""
     if lemmas:
         # Lemmas are the base form of a word. Ex: the lemma of swimming is swim.
@@ -46,7 +46,7 @@ def _remove_stop_words(doc, lemmas: bool=False) -> list:
     return interesting_words
 
 
-def find_popular_words(nlp, words_list: list, n: int=3, lemmas: bool=False) -> list:
+def find_popular_words(nlp, words_list: list, n: int = 3, lemmas: bool = False) -> list:
     """Finds the most popular words that aren't stop words in a list of words."""
     text = " ".join(words_list)
     doc = nlp(text.lower())
@@ -56,8 +56,8 @@ def find_popular_words(nlp, words_list: list, n: int=3, lemmas: bool=False) -> l
     return popular_words
 
 
-def find_top_words(nlp, df, n: int=1, lemmas: bool=False) -> pandas.Series:
-    """Returns a pandas.Series object of tuples comprised of the the top 'n' words 
+def find_top_words(nlp, df, n: int = 1, lemmas: bool = False) -> pandas.Series:
+    """Returns a pandas.Series object of tuples comprised of the the top 'n' words
     from each row of a pandas.DataFrame already containing a 'words' feature.
     """
     top_words: pandas.Series = df.apply(
